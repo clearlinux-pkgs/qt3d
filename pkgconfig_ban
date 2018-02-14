@@ -1,0 +1,14 @@
+# This file contains pkgconfig build requirements that get picked up
+# but are undesirable. One entry per line, no whitespace.
+Qt53DAnimation
+Qt53DCore
+Qt53DExtras
+Qt53DInput
+Qt53DLogic
+Qt53DQuick
+Qt53DQuickAnimation
+Qt53DQuickExtras
+Qt53DQuickInput
+Qt53DQuickRender
+Qt53DQuickScene2D
+Qt53DRender
