@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.10.0
-Release  : 1
+Release  : 2
 URL      : http://download.qt.io/official_releases/qt/5.10/5.10.0/submodules/qt3d-everywhere-src-5.10.0.tar.xz
 Source0  : http://download.qt.io/official_releases/qt/5.10/5.10.0/submodules/qt3d-everywhere-src-5.10.0.tar.xz
 Summary  : No detailed summary available
@@ -26,9 +26,9 @@ BuildRequires : pkgconfig(Qt5QuickWidgets)
 BuildRequires : pkgconfig(Qt5Sensors)
 BuildRequires : pkgconfig(Qt5Test)
 BuildRequires : pkgconfig(Qt5Widgets)
-BuildRequires : pkgconfig(zlib)
 BuildRequires : qtbase-dev
 BuildRequires : zlib-dev
+Patch1: 0001-configure-Auto-detect-that-AVX2-is-enabled.patch
 
 %description
 This directory contains the Qt3D project for Qt5:
@@ -64,24 +64,136 @@ lib components for the qt3d package.
 
 %prep
 %setup -q -n qt3d-everywhere-src-5.10.0
+%patch1 -p1
+pushd ..
+cp -a qt3d-everywhere-src-5.10.0 buildavx2
+popd
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C
+pushd ../buildavx2/
+cat > qt.conf <<EOF
+[DevicePaths]
+Prefix=/usr
+Documentation=share/doc/qt5
+Headers=include/qt5
+Libraries=lib64/haswell
+Binaries=bin/haswell
+Plugins=lib64/qt5/plugins
+Imports=lib64/qt5/imports
+Qml2Imports=lib64/qt5/qml
+ArchData=lib64/qt5
+Data=share/qt5
+Translations=share/qt5/translations
+Examples=share/qt5/examples
+[Paths]
+Prefix=/usr
+Documentation=share/doc/qt5
+Headers=include/qt5
+Libraries=lib64/haswell
+Binaries=bin/haswell
+Plugins=lib64/qt5/plugins
+Imports=lib64/qt5/imports
+Qml2Imports=lib64/qt5/qml
+ArchData=lib64/qt5
+Data=share/qt5
+Translations=share/qt5/translations
+Examples=share/qt5/examples
+HostPrefix=/usr
+HostBinaries=bin/haswell
+HostLibraries=lib64/haswell
+HostData=lib64/qt5
+EOF
+`pkg-config --variable=host_bins Qt5Core $(sed -n '/MODULE_VERSION */s///p' .qmake.conf 2>/dev/null)`/qmake -qtconf $PWD/qt.conf \
+"QT_CPU_FEATURES.x86_64 += avx avx2 f16c" \
+QMAKE_CFLAGS+=-march=haswell QMAKE_CXXFLAGS+=-march=haswell QMAKE_LFLAGS+=-march=haswell --
+make  %{?_smp_mflags}
+popd
 `pkg-config --variable=host_bins Qt5Core $(sed -n '/MODULE_VERSION */s///p' .qmake.conf 2>/dev/null)`/qmake --
 test -r config.log && cat config.log
 make  %{?_smp_mflags}
 
 %install
+pushd ../buildavx2/
+make INSTALL_ROOT=%{buildroot} install
+popd
 make INSTALL_ROOT=%{buildroot} install
 
 %files
 %defattr(-,root,root,-)
+/usr/lib64/haswell/cmake/Qt53DAnimation/Qt53DAnimationConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DAnimation/Qt53DAnimationConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DCore/Qt53DCoreConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DCore/Qt53DCoreConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DExtras/Qt53DExtrasConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DExtras/Qt53DExtrasConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DInput/Qt53DInputConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DInput/Qt53DInputConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DLogic/Qt53DLogicConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DLogic/Qt53DLogicConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DQuick/Qt53DQuickConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DQuick/Qt53DQuickConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickAnimation/Qt53DQuickAnimationConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickAnimation/Qt53DQuickAnimationConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickExtras/Qt53DQuickExtrasConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickExtras/Qt53DQuickExtrasConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickInput/Qt53DQuickInputConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickInput/Qt53DQuickInputConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickRender/Qt53DQuickRenderConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickRender/Qt53DQuickRenderConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickScene2D/Qt53DQuickScene2DConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DQuickScene2D/Qt53DQuickScene2DConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRenderConfig.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRenderConfigVersion.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_AssimpSceneImportPlugin.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_DefaultGeometryLoaderPlugin.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_GLTFGeometryLoaderPlugin.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_GLTFSceneExportPlugin.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_GLTFSceneImportPlugin.cmake
+/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_Scene2DPlugin.cmake
+/usr/lib64/haswell/libQt53DAnimation.la
+/usr/lib64/haswell/libQt53DAnimation.prl
+/usr/lib64/haswell/libQt53DCore.la
+/usr/lib64/haswell/libQt53DCore.prl
+/usr/lib64/haswell/libQt53DExtras.la
+/usr/lib64/haswell/libQt53DExtras.prl
+/usr/lib64/haswell/libQt53DInput.la
+/usr/lib64/haswell/libQt53DInput.prl
+/usr/lib64/haswell/libQt53DLogic.la
+/usr/lib64/haswell/libQt53DLogic.prl
+/usr/lib64/haswell/libQt53DQuick.la
+/usr/lib64/haswell/libQt53DQuick.prl
+/usr/lib64/haswell/libQt53DQuickAnimation.la
+/usr/lib64/haswell/libQt53DQuickAnimation.prl
+/usr/lib64/haswell/libQt53DQuickExtras.la
+/usr/lib64/haswell/libQt53DQuickExtras.prl
+/usr/lib64/haswell/libQt53DQuickInput.la
+/usr/lib64/haswell/libQt53DQuickInput.prl
+/usr/lib64/haswell/libQt53DQuickRender.la
+/usr/lib64/haswell/libQt53DQuickRender.prl
+/usr/lib64/haswell/libQt53DQuickScene2D.la
+/usr/lib64/haswell/libQt53DQuickScene2D.prl
+/usr/lib64/haswell/libQt53DRender.la
+/usr/lib64/haswell/libQt53DRender.prl
+/usr/lib64/haswell/pkgconfig/Qt53DAnimation.pc
+/usr/lib64/haswell/pkgconfig/Qt53DCore.pc
+/usr/lib64/haswell/pkgconfig/Qt53DExtras.pc
+/usr/lib64/haswell/pkgconfig/Qt53DInput.pc
+/usr/lib64/haswell/pkgconfig/Qt53DLogic.pc
+/usr/lib64/haswell/pkgconfig/Qt53DQuick.pc
+/usr/lib64/haswell/pkgconfig/Qt53DQuickAnimation.pc
+/usr/lib64/haswell/pkgconfig/Qt53DQuickExtras.pc
+/usr/lib64/haswell/pkgconfig/Qt53DQuickInput.pc
+/usr/lib64/haswell/pkgconfig/Qt53DQuickRender.pc
+/usr/lib64/haswell/pkgconfig/Qt53DQuickScene2D.pc
+/usr/lib64/haswell/pkgconfig/Qt53DRender.pc
 
 %files bin
 %defattr(-,root,root,-)
+/usr/bin/haswell/qgltf
 /usr/bin/qgltf
 
 %files dev
@@ -1254,6 +1366,18 @@ make INSTALL_ROOT=%{buildroot} install
 /usr/lib64/cmake/Qt53DRender/Qt53DRender_GLTFSceneExportPlugin.cmake
 /usr/lib64/cmake/Qt53DRender/Qt53DRender_GLTFSceneImportPlugin.cmake
 /usr/lib64/cmake/Qt53DRender/Qt53DRender_Scene2DPlugin.cmake
+/usr/lib64/haswell/libQt53DAnimation.so
+/usr/lib64/haswell/libQt53DCore.so
+/usr/lib64/haswell/libQt53DExtras.so
+/usr/lib64/haswell/libQt53DInput.so
+/usr/lib64/haswell/libQt53DLogic.so
+/usr/lib64/haswell/libQt53DQuick.so
+/usr/lib64/haswell/libQt53DQuickAnimation.so
+/usr/lib64/haswell/libQt53DQuickExtras.so
+/usr/lib64/haswell/libQt53DQuickInput.so
+/usr/lib64/haswell/libQt53DQuickRender.so
+/usr/lib64/haswell/libQt53DQuickScene2D.so
+/usr/lib64/haswell/libQt53DRender.so
 /usr/lib64/libQt53DAnimation.la
 /usr/lib64/libQt53DAnimation.prl
 /usr/lib64/libQt53DAnimation.so
@@ -1329,6 +1453,42 @@ make INSTALL_ROOT=%{buildroot} install
 
 %files lib
 %defattr(-,root,root,-)
+/usr/lib64/haswell/libQt53DAnimation.so.5
+/usr/lib64/haswell/libQt53DAnimation.so.5.10
+/usr/lib64/haswell/libQt53DAnimation.so.5.10.0
+/usr/lib64/haswell/libQt53DCore.so.5
+/usr/lib64/haswell/libQt53DCore.so.5.10
+/usr/lib64/haswell/libQt53DCore.so.5.10.0
+/usr/lib64/haswell/libQt53DExtras.so.5
+/usr/lib64/haswell/libQt53DExtras.so.5.10
+/usr/lib64/haswell/libQt53DExtras.so.5.10.0
+/usr/lib64/haswell/libQt53DInput.so.5
+/usr/lib64/haswell/libQt53DInput.so.5.10
+/usr/lib64/haswell/libQt53DInput.so.5.10.0
+/usr/lib64/haswell/libQt53DLogic.so.5
+/usr/lib64/haswell/libQt53DLogic.so.5.10
+/usr/lib64/haswell/libQt53DLogic.so.5.10.0
+/usr/lib64/haswell/libQt53DQuick.so.5
+/usr/lib64/haswell/libQt53DQuick.so.5.10
+/usr/lib64/haswell/libQt53DQuick.so.5.10.0
+/usr/lib64/haswell/libQt53DQuickAnimation.so.5
+/usr/lib64/haswell/libQt53DQuickAnimation.so.5.10
+/usr/lib64/haswell/libQt53DQuickAnimation.so.5.10.0
+/usr/lib64/haswell/libQt53DQuickExtras.so.5
+/usr/lib64/haswell/libQt53DQuickExtras.so.5.10
+/usr/lib64/haswell/libQt53DQuickExtras.so.5.10.0
+/usr/lib64/haswell/libQt53DQuickInput.so.5
+/usr/lib64/haswell/libQt53DQuickInput.so.5.10
+/usr/lib64/haswell/libQt53DQuickInput.so.5.10.0
+/usr/lib64/haswell/libQt53DQuickRender.so.5
+/usr/lib64/haswell/libQt53DQuickRender.so.5.10
+/usr/lib64/haswell/libQt53DQuickRender.so.5.10.0
+/usr/lib64/haswell/libQt53DQuickScene2D.so.5
+/usr/lib64/haswell/libQt53DQuickScene2D.so.5.10
+/usr/lib64/haswell/libQt53DQuickScene2D.so.5.10.0
+/usr/lib64/haswell/libQt53DRender.so.5
+/usr/lib64/haswell/libQt53DRender.so.5.10
+/usr/lib64/haswell/libQt53DRender.so.5.10.0
 /usr/lib64/libQt53DAnimation.so.5
 /usr/lib64/libQt53DAnimation.so.5.10
 /usr/lib64/libQt53DAnimation.so.5.10.0

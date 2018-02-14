@@ -1,0 +1,41 @@
+From a25ba8e4c0951ff22e6d45956c6f4a5727a88c87 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Wed, 14 Feb 2018 12:26:03 -0800
+Subject: [PATCH 1/1] configure: Auto-detect that AVX2 is enabled
+
+If the user has an mkspec that enables the option, it will be stored in
+QT_CPU_FEATURES.$$QT_ARCH. At this point, we should enable AVX2.
+
+Change-Id: I940917d6763842499b18fffd15134b004028c6ae
+---
+ src/core/configure.json | 2 +-
+ src/core/configure.pri  | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+ create mode 100644 src/core/configure.pri
+
+diff --git a/src/core/configure.json b/src/core/configure.json
+index 871f6bfa4..48dbbb342 100644
+--- a/src/core/configure.json
++++ b/src/core/configure.json
+@@ -92,7 +92,7 @@
+         "qt3d-simd-avx2": {
+             "label": "Use AVX2 instructions",
+             "purpose": "Use AVX2 SIMD instructions to accelerate matrix operations",
+-            "autoDetect": false,
++            "autoDetect": "call.checkAvx2",
+             "enable": "input.qt3d-simd == 'avx2'",
+             "disable": "input.qt3d-simd == 'sse2' || input.qt3d-simd == 'no' || (config.win32 && arch.i386)",
+             "output": [ "privateFeature" ]
+diff --git a/src/core/configure.pri b/src/core/configure.pri
+new file mode 100644
+index 000000000..99399f631
+--- /dev/null
++++ b/src/core/configure.pri
+@@ -0,0 +1,4 @@
++defineReplace(qtConfFunc_checkAvx2) {
++    contains(QT_CPU_FEATURES.$$QT_ARCH, avx2): return(true)
++    return(false)
++}
+-- 
+2.16.1
+
