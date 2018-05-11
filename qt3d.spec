@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.10.1
-Release  : 5
+Release  : 6
 URL      : http://download.qt.io/official_releases/qt/5.10/5.10.1/submodules/qt3d-everywhere-src-5.10.1.tar.xz
 Source0  : http://download.qt.io/official_releases/qt/5.10/5.10.1/submodules/qt3d-everywhere-src-5.10.1.tar.xz
 Summary  : No detailed summary available
@@ -27,6 +27,7 @@ BuildRequires : pkgconfig(Qt5Sensors)
 BuildRequires : pkgconfig(Qt5Test)
 BuildRequires : pkgconfig(Qt5Widgets)
 BuildRequires : qtbase-dev
+BuildRequires : qtbase-extras
 BuildRequires : zlib-dev
 Patch1: 0001-configure-Auto-detect-that-AVX2-is-enabled.patch
 
