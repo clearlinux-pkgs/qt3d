@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.11.0
-Release  : 10
+Release  : 11
 URL      : http://download.qt.io/official_releases/qt/5.11/5.11.0/submodules/qt3d-everywhere-src-5.11.0.tar.xz
 Source0  : http://download.qt.io/official_releases/qt/5.11/5.11.0/submodules/qt3d-everywhere-src-5.11.0.tar.xz
 Summary  : No detailed summary available
@@ -12,6 +12,7 @@ Group    : Development/Tools
 License  : BSD-3-Clause BSD-3-Clause-Clear BSL-1.0 CC-BY-4.0 GPL-2.0 GPL-3.0 LGPL-3.0 MIT Unlicense
 Requires: qt3d-bin
 Requires: qt3d-lib
+Requires: qt3d-license
 BuildRequires : cmake
 BuildRequires : mesa-dev
 BuildRequires : pkgconfig(Qt5Concurrent)
@@ -26,6 +27,7 @@ BuildRequires : pkgconfig(Qt5QuickWidgets)
 BuildRequires : pkgconfig(Qt5Sensors)
 BuildRequires : pkgconfig(Qt5Test)
 BuildRequires : pkgconfig(Qt5Widgets)
+BuildRequires : pkgconfig(assimp)
 BuildRequires : qtbase-dev
 BuildRequires : qtbase-extras
 BuildRequires : zlib-dev
@@ -38,6 +40,7 @@ This directory contains the Qt3D project for Qt5:
 %package bin
 Summary: bin components for the qt3d package.
 Group: Binaries
+Requires: qt3d-license
 
 %description bin
 bin components for the qt3d package.
@@ -54,12 +57,29 @@ Provides: qt3d-devel
 dev components for the qt3d package.
 
 
+%package doc
+Summary: doc components for the qt3d package.
+Group: Documentation
+
+%description doc
+doc components for the qt3d package.
+
+
 %package lib
 Summary: lib components for the qt3d package.
 Group: Libraries
+Requires: qt3d-license
 
 %description lib
 lib components for the qt3d package.
+
+
+%package license
+Summary: license components for the qt3d package.
+Group: Default
+
+%description license
+license components for the qt3d package.
 
 
 %prep
@@ -82,41 +102,9 @@ qmake QMAKE_CFLAGS="$CFLAGS" QMAKE_CXXFLAGS="$CXXFLAGS" QMAKE_LFLAGS="$LDFLAGS" 
 test -r config.log && cat config.log
 make  %{?_smp_mflags}
 pushd ../buildavx2/
-cat > qt.conf <<EOF
-[DevicePaths]
-Prefix=/usr
-Documentation=share/doc/qt5
-Headers=include/qt5
-Libraries=lib64/haswell
-Binaries=bin/haswell
-Plugins=lib64/qt5/plugins
-Imports=lib64/qt5/imports
-Qml2Imports=lib64/qt5/qml
-ArchData=lib64/qt5
-Data=share/qt5
-Translations=share/qt5/translations
-Examples=share/qt5/examples
-[Paths]
-Prefix=/usr
-Documentation=share/doc/qt5
-Headers=include/qt5
-Libraries=lib64/haswell
-Binaries=bin/haswell
-Plugins=lib64/qt5/plugins
-Imports=lib64/qt5/imports
-Qml2Imports=lib64/qt5/qml
-ArchData=lib64/qt5
-Data=share/qt5
-Translations=share/qt5/translations
-Examples=share/qt5/examples
-HostPrefix=/usr
-HostBinaries=bin/haswell
-HostLibraries=lib64/haswell
-HostData=lib64/qt5
-EOF
-qmake -qtconf $PWD/qt.conf QMAKE_CFLAGS_RELEASE= QMAKE_CXXFLAGS_RELEASE= \
+qmake QMAKE_CFLAGS_RELEASE= QMAKE_CXXFLAGS_RELEASE= \
     QMAKE_CFLAGS="$CFLAGS -march=haswell" QMAKE_CXXFLAGS="$CXXFLAGS -march=haswell" QMAKE_LFLAGS="$LDFLAGS -march=haswell" \
-    "QT_CPU_FEATURES.x86_64 += avx avx2 f16c"
+    "QT_CPU_FEATURES.x86_64 += avx avx2 bmi bmi2 f16c fma lzcnt popcnt"
 make  %{?_smp_mflags}
 popd
 
@@ -124,76 +112,48 @@ popd
 pushd ../buildavx2/
 make INSTALL_ROOT=%{buildroot} install
 popd
+pushd %{buildroot}/usr/bin
+for f in *; do mkdir -p haswell; mv -t haswell "$f"; done
+cd %{buildroot}/usr/lib64
+(
+    find . -type l -xtype f -name '*.so*' -print0
+    find . -type f -name '*.so*' -print0
+) | xargs -r0 perl -e 'for $f (@ARGV) {
+    open READELF, "-|", "readelf", "-d", $f;
+    @soname = grep / *0x\w+ \(SONAME\)\s/, <READELF>;
+    close READELF;
+    next if $? >> 8;  # not ELF
+    if (scalar @soname) {
+        $to = ($f =~ s,([^/]+)$,haswell/$1,r);
+        mkdir($to =~ s,/[^/]+$,,r);
+    } else {
+        $to = $f . ".avx2";
+    }
+    rename($f, $to) and print "$f -> $to\n"
+        or print STDERR "rename($f, $to): $!\n";
+}'
+popd
+
 make INSTALL_ROOT=%{buildroot} install
+mkdir -p %{buildroot}/usr/share/doc/qt3d
+cp LICENSE.GPLv3 %{buildroot}/usr/share/doc/qt3d/LICENSE.GPLv3
+cp LICENSE.LGPLv3 %{buildroot}/usr/share/doc/qt3d/LICENSE.LGPLv3
+cp LICENSE.GPL3 %{buildroot}/usr/share/doc/qt3d/LICENSE.GPL3
+cp LICENSE.GPL3-EXCEPT %{buildroot}/usr/share/doc/qt3d/LICENSE.GPL3-EXCEPT
+cp LICENSE.GPL2 %{buildroot}/usr/share/doc/qt3d/LICENSE.GPL2
+cp LICENSE.GPL %{buildroot}/usr/share/doc/qt3d/LICENSE.GPL
+cp LICENSE.LGPL3 %{buildroot}/usr/share/doc/qt3d/LICENSE.LGPL3
+cp examples/qt3d/exampleresources/assets/gltf/LICENSE.md %{buildroot}/usr/share/doc/qt3d/examples_qt3d_exampleresources_assets_gltf_LICENSE.md
+cp examples/qt3d/planets-qml/images/solarsystemscope/license.txt %{buildroot}/usr/share/doc/qt3d/examples_qt3d_planets-qml_images_solarsystemscope_license.txt
+cp src/3rdparty/assimp/LICENSE %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_LICENSE
+cp src/3rdparty/assimp/contrib/poly2tri/LICENSE %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_poly2tri_LICENSE
+cp src/3rdparty/assimp/contrib/rapidjson/license.txt %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_rapidjson_license.txt
+cp src/3rdparty/assimp/contrib/clipper/License.txt %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_clipper_License.txt
+cp src/3rdparty/assimp/contrib/openddlparser/LICENSE %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_openddlparser_LICENSE
+cp src/3rdparty/assimp/contrib/zip/UNLICENSE %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_zip_UNLICENSE
 
 %files
 %defattr(-,root,root,-)
-/usr/lib64/haswell/cmake/Qt53DAnimation/Qt53DAnimationConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DAnimation/Qt53DAnimationConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DCore/Qt53DCoreConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DCore/Qt53DCoreConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DExtras/Qt53DExtrasConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DExtras/Qt53DExtrasConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DInput/Qt53DInputConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DInput/Qt53DInputConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DLogic/Qt53DLogicConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DLogic/Qt53DLogicConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DQuick/Qt53DQuickConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DQuick/Qt53DQuickConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickAnimation/Qt53DQuickAnimationConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickAnimation/Qt53DQuickAnimationConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickExtras/Qt53DQuickExtrasConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickExtras/Qt53DQuickExtrasConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickInput/Qt53DQuickInputConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickInput/Qt53DQuickInputConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickRender/Qt53DQuickRenderConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickRender/Qt53DQuickRenderConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickScene2D/Qt53DQuickScene2DConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DQuickScene2D/Qt53DQuickScene2DConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRenderConfig.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRenderConfigVersion.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_AssimpSceneImportPlugin.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_DefaultGeometryLoaderPlugin.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_GLTFGeometryLoaderPlugin.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_GLTFSceneExportPlugin.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_GLTFSceneImportPlugin.cmake
-/usr/lib64/haswell/cmake/Qt53DRender/Qt53DRender_Scene2DPlugin.cmake
-/usr/lib64/haswell/libQt53DAnimation.la
-/usr/lib64/haswell/libQt53DAnimation.prl
-/usr/lib64/haswell/libQt53DCore.la
-/usr/lib64/haswell/libQt53DCore.prl
-/usr/lib64/haswell/libQt53DExtras.la
-/usr/lib64/haswell/libQt53DExtras.prl
-/usr/lib64/haswell/libQt53DInput.la
-/usr/lib64/haswell/libQt53DInput.prl
-/usr/lib64/haswell/libQt53DLogic.la
-/usr/lib64/haswell/libQt53DLogic.prl
-/usr/lib64/haswell/libQt53DQuick.la
-/usr/lib64/haswell/libQt53DQuick.prl
-/usr/lib64/haswell/libQt53DQuickAnimation.la
-/usr/lib64/haswell/libQt53DQuickAnimation.prl
-/usr/lib64/haswell/libQt53DQuickExtras.la
-/usr/lib64/haswell/libQt53DQuickExtras.prl
-/usr/lib64/haswell/libQt53DQuickInput.la
-/usr/lib64/haswell/libQt53DQuickInput.prl
-/usr/lib64/haswell/libQt53DQuickRender.la
-/usr/lib64/haswell/libQt53DQuickRender.prl
-/usr/lib64/haswell/libQt53DQuickScene2D.la
-/usr/lib64/haswell/libQt53DQuickScene2D.prl
-/usr/lib64/haswell/libQt53DRender.la
-/usr/lib64/haswell/libQt53DRender.prl
-/usr/lib64/haswell/pkgconfig/Qt53DAnimation.pc
-/usr/lib64/haswell/pkgconfig/Qt53DCore.pc
-/usr/lib64/haswell/pkgconfig/Qt53DExtras.pc
-/usr/lib64/haswell/pkgconfig/Qt53DInput.pc
-/usr/lib64/haswell/pkgconfig/Qt53DLogic.pc
-/usr/lib64/haswell/pkgconfig/Qt53DQuick.pc
-/usr/lib64/haswell/pkgconfig/Qt53DQuickAnimation.pc
-/usr/lib64/haswell/pkgconfig/Qt53DQuickExtras.pc
-/usr/lib64/haswell/pkgconfig/Qt53DQuickInput.pc
-/usr/lib64/haswell/pkgconfig/Qt53DQuickRender.pc
-/usr/lib64/haswell/pkgconfig/Qt53DQuickScene2D.pc
-/usr/lib64/haswell/pkgconfig/Qt53DRender.pc
 
 %files bin
 %defattr(-,root,root,-)
@@ -1398,7 +1358,6 @@ make INSTALL_ROOT=%{buildroot} install
 /usr/lib64/haswell/libQt53DQuickAnimation.so
 /usr/lib64/haswell/libQt53DQuickInput.so
 /usr/lib64/haswell/libQt53DQuickRender.so
-/usr/lib64/haswell/libQt53DQuickScene2D.so
 /usr/lib64/haswell/libQt53DRender.so
 /usr/lib64/libQt53DAnimation.la
 /usr/lib64/libQt53DAnimation.prl
@@ -1473,6 +1432,10 @@ make INSTALL_ROOT=%{buildroot} install
 /usr/lib64/qt5/mkspecs/modules/qt_lib_3drender.pri
 /usr/lib64/qt5/mkspecs/modules/qt_lib_3drender_private.pri
 
+%files doc
+%defattr(0644,root,root,0755)
+%doc /usr/share/doc/qt3d/*
+
 %files lib
 %defattr(-,root,root,-)
 /usr/lib64/haswell/libQt53DAnimation.so.5
@@ -1502,9 +1465,6 @@ make INSTALL_ROOT=%{buildroot} install
 /usr/lib64/haswell/libQt53DQuickRender.so.5
 /usr/lib64/haswell/libQt53DQuickRender.so.5.11
 /usr/lib64/haswell/libQt53DQuickRender.so.5.11.0
-/usr/lib64/haswell/libQt53DQuickScene2D.so.5
-/usr/lib64/haswell/libQt53DQuickScene2D.so.5.11
-/usr/lib64/haswell/libQt53DQuickScene2D.so.5.11.0
 /usr/lib64/haswell/libQt53DRender.so.5
 /usr/lib64/haswell/libQt53DRender.so.5.11
 /usr/lib64/haswell/libQt53DRender.so.5.11.0
@@ -1545,27 +1505,35 @@ make INSTALL_ROOT=%{buildroot} install
 /usr/lib64/libQt53DRender.so.5.11
 /usr/lib64/libQt53DRender.so.5.11.0
 /usr/lib64/qt5/plugins/geometryloaders/libdefaultgeometryloader.so
+/usr/lib64/qt5/plugins/geometryloaders/libdefaultgeometryloader.so.avx2
 /usr/lib64/qt5/plugins/geometryloaders/libgltfgeometryloader.so
 /usr/lib64/qt5/plugins/renderplugins/libscene2d.so
 /usr/lib64/qt5/plugins/sceneparsers/libassimpsceneimport.so
+/usr/lib64/qt5/plugins/sceneparsers/libassimpsceneimport.so.avx2
 /usr/lib64/qt5/plugins/sceneparsers/libgltfsceneexport.so
+/usr/lib64/qt5/plugins/sceneparsers/libgltfsceneexport.so.avx2
 /usr/lib64/qt5/plugins/sceneparsers/libgltfsceneimport.so
 /usr/lib64/qt5/qml/Qt3D/Animation/libquick3danimationplugin.so
+/usr/lib64/qt5/qml/Qt3D/Animation/libquick3danimationplugin.so.avx2
 /usr/lib64/qt5/qml/Qt3D/Animation/plugins.qmltypes
 /usr/lib64/qt5/qml/Qt3D/Animation/qmldir
 /usr/lib64/qt5/qml/Qt3D/Core/libquick3dcoreplugin.so
+/usr/lib64/qt5/qml/Qt3D/Core/libquick3dcoreplugin.so.avx2
 /usr/lib64/qt5/qml/Qt3D/Core/plugins.qmltypes
 /usr/lib64/qt5/qml/Qt3D/Core/qmldir
 /usr/lib64/qt5/qml/Qt3D/Extras/libquick3dextrasplugin.so
+/usr/lib64/qt5/qml/Qt3D/Extras/libquick3dextrasplugin.so.avx2
 /usr/lib64/qt5/qml/Qt3D/Extras/plugins.qmltypes
 /usr/lib64/qt5/qml/Qt3D/Extras/qmldir
 /usr/lib64/qt5/qml/Qt3D/Input/libquick3dinputplugin.so
+/usr/lib64/qt5/qml/Qt3D/Input/libquick3dinputplugin.so.avx2
 /usr/lib64/qt5/qml/Qt3D/Input/plugins.qmltypes
 /usr/lib64/qt5/qml/Qt3D/Input/qmldir
 /usr/lib64/qt5/qml/Qt3D/Logic/libquick3dlogicplugin.so
 /usr/lib64/qt5/qml/Qt3D/Logic/plugins.qmltypes
 /usr/lib64/qt5/qml/Qt3D/Logic/qmldir
 /usr/lib64/qt5/qml/Qt3D/Render/libquick3drenderplugin.so
+/usr/lib64/qt5/qml/Qt3D/Render/libquick3drenderplugin.so.avx2
 /usr/lib64/qt5/qml/Qt3D/Render/plugins.qmltypes
 /usr/lib64/qt5/qml/Qt3D/Render/qmldir
 /usr/lib64/qt5/qml/QtQuick/Scene2D/libqtquickscene2dplugin.so
@@ -1574,3 +1542,20 @@ make INSTALL_ROOT=%{buildroot} install
 /usr/lib64/qt5/qml/QtQuick/Scene3D/libqtquickscene3dplugin.so
 /usr/lib64/qt5/qml/QtQuick/Scene3D/plugins.qmltypes
 /usr/lib64/qt5/qml/QtQuick/Scene3D/qmldir
+
+%files license
+%defattr(-,root,root,-)
+/usr/share/doc/qt3d/LICENSE.GPL
+/usr/share/doc/qt3d/LICENSE.GPL2
+/usr/share/doc/qt3d/LICENSE.GPL3
+/usr/share/doc/qt3d/LICENSE.GPL3-EXCEPT
+/usr/share/doc/qt3d/LICENSE.GPLv3
+/usr/share/doc/qt3d/LICENSE.LGPL3
+/usr/share/doc/qt3d/LICENSE.LGPLv3
+/usr/share/doc/qt3d/examples_qt3d_exampleresources_assets_gltf_LICENSE.md
+/usr/share/doc/qt3d/examples_qt3d_planets-qml_images_solarsystemscope_license.txt
+/usr/share/doc/qt3d/src_3rdparty_assimp_LICENSE
+/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_openddlparser_LICENSE
+/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_poly2tri_LICENSE
+/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_rapidjson_license.txt
+/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_zip_UNLICENSE
