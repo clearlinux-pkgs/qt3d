@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.11.0
-Release  : 11
+Release  : 12
 URL      : http://download.qt.io/official_releases/qt/5.11/5.11.0/submodules/qt3d-everywhere-src-5.11.0.tar.xz
 Source0  : http://download.qt.io/official_releases/qt/5.11/5.11.0/submodules/qt3d-everywhere-src-5.11.0.tar.xz
 Summary  : No detailed summary available
@@ -97,44 +97,19 @@ export CFLAGS="$CFLAGS -O3 -falign-functions=32 -fno-math-errno -fno-semantic-in
 export FCFLAGS="$CFLAGS -O3 -falign-functions=32 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
 export FFLAGS="$CFLAGS -O3 -falign-functions=32 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
 export CXXFLAGS="$CXXFLAGS -O3 -falign-functions=32 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
-qmake QMAKE_CFLAGS="$CFLAGS" QMAKE_CXXFLAGS="$CXXFLAGS" QMAKE_LFLAGS="$LDFLAGS" \
-    QMAKE_CFLAGS_RELEASE= QMAKE_CXXFLAGS_RELEASE=
+%qmake
 test -r config.log && cat config.log
 make  %{?_smp_mflags}
 pushd ../buildavx2/
-qmake QMAKE_CFLAGS_RELEASE= QMAKE_CXXFLAGS_RELEASE= \
-    QMAKE_CFLAGS="$CFLAGS -march=haswell" QMAKE_CXXFLAGS="$CXXFLAGS -march=haswell" QMAKE_LFLAGS="$LDFLAGS -march=haswell" \
-    "QT_CPU_FEATURES.x86_64 += avx avx2 bmi bmi2 f16c fma lzcnt popcnt"
+%qmake 'QT_CPU_FEATURES.x86_64 += avx avx2 bmi bmi2 f16c fma lzcnt popcnt'\
+    QMAKE_CFLAGS+=-march=haswell QMAKE_CXXFLAGS+=-march=haswell \
+    QMAKE_LFLAGS+=-march=haswell 
 make  %{?_smp_mflags}
 popd
 
 %install
-pushd ../buildavx2/
-make INSTALL_ROOT=%{buildroot} install
-popd
-pushd %{buildroot}/usr/bin
-for f in *; do mkdir -p haswell; mv -t haswell "$f"; done
-cd %{buildroot}/usr/lib64
-(
-    find . -type l -xtype f -name '*.so*' -print0
-    find . -type f -name '*.so*' -print0
-) | xargs -r0 perl -e 'for $f (@ARGV) {
-    open READELF, "-|", "readelf", "-d", $f;
-    @soname = grep / *0x\w+ \(SONAME\)\s/, <READELF>;
-    close READELF;
-    next if $? >> 8;  # not ELF
-    if (scalar @soname) {
-        $to = ($f =~ s,([^/]+)$,haswell/$1,r);
-        mkdir($to =~ s,/[^/]+$,,r);
-    } else {
-        $to = $f . ".avx2";
-    }
-    rename($f, $to) and print "$f -> $to\n"
-        or print STDERR "rename($f, $to): $!\n";
-}'
-popd
-
-make INSTALL_ROOT=%{buildroot} install
+export SOURCE_DATE_EPOCH=1530390011
+rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/doc/qt3d
 cp LICENSE.GPLv3 %{buildroot}/usr/share/doc/qt3d/LICENSE.GPLv3
 cp LICENSE.LGPLv3 %{buildroot}/usr/share/doc/qt3d/LICENSE.LGPLv3
@@ -151,13 +126,16 @@ cp src/3rdparty/assimp/contrib/rapidjson/license.txt %{buildroot}/usr/share/doc/
 cp src/3rdparty/assimp/contrib/clipper/License.txt %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_clipper_License.txt
 cp src/3rdparty/assimp/contrib/openddlparser/LICENSE %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_openddlparser_LICENSE
 cp src/3rdparty/assimp/contrib/zip/UNLICENSE %{buildroot}/usr/share/doc/qt3d/src_3rdparty_assimp_contrib_zip_UNLICENSE
+pushd ../buildavx2/
+%make_install_avx2
+popd
+%make_install
 
 %files
 %defattr(-,root,root,-)
 
 %files bin
 %defattr(-,root,root,-)
-/usr/bin/haswell/qgltf
 /usr/bin/qgltf
 
 %files dev
@@ -1359,40 +1337,28 @@ cp src/3rdparty/assimp/contrib/zip/UNLICENSE %{buildroot}/usr/share/doc/qt3d/src
 /usr/lib64/haswell/libQt53DQuickInput.so
 /usr/lib64/haswell/libQt53DQuickRender.so
 /usr/lib64/haswell/libQt53DRender.so
-/usr/lib64/libQt53DAnimation.la
 /usr/lib64/libQt53DAnimation.prl
 /usr/lib64/libQt53DAnimation.so
-/usr/lib64/libQt53DCore.la
 /usr/lib64/libQt53DCore.prl
 /usr/lib64/libQt53DCore.so
-/usr/lib64/libQt53DExtras.la
 /usr/lib64/libQt53DExtras.prl
 /usr/lib64/libQt53DExtras.so
-/usr/lib64/libQt53DInput.la
 /usr/lib64/libQt53DInput.prl
 /usr/lib64/libQt53DInput.so
-/usr/lib64/libQt53DLogic.la
 /usr/lib64/libQt53DLogic.prl
 /usr/lib64/libQt53DLogic.so
-/usr/lib64/libQt53DQuick.la
 /usr/lib64/libQt53DQuick.prl
 /usr/lib64/libQt53DQuick.so
-/usr/lib64/libQt53DQuickAnimation.la
 /usr/lib64/libQt53DQuickAnimation.prl
 /usr/lib64/libQt53DQuickAnimation.so
-/usr/lib64/libQt53DQuickExtras.la
 /usr/lib64/libQt53DQuickExtras.prl
 /usr/lib64/libQt53DQuickExtras.so
-/usr/lib64/libQt53DQuickInput.la
 /usr/lib64/libQt53DQuickInput.prl
 /usr/lib64/libQt53DQuickInput.so
-/usr/lib64/libQt53DQuickRender.la
 /usr/lib64/libQt53DQuickRender.prl
 /usr/lib64/libQt53DQuickRender.so
-/usr/lib64/libQt53DQuickScene2D.la
 /usr/lib64/libQt53DQuickScene2D.prl
 /usr/lib64/libQt53DQuickScene2D.so
-/usr/lib64/libQt53DRender.la
 /usr/lib64/libQt53DRender.prl
 /usr/lib64/libQt53DRender.so
 /usr/lib64/pkgconfig/Qt53DAnimation.pc
