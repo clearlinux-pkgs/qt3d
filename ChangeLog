@@ -1,8 +1,10 @@
-Qt 5.12 introduces many new features and improvements as well as bugfixes
-over the 5.11.x series. For more details, refer to the online documentation
-included in this distribution. The documentation is also available online:
+Qt 5.12.1 is a bug-fix release. It maintains both forward and backward
+compatibility (source and binary) with Qt 5.12.0.
 
-https://doc.qt.io/qt-5/index.html
+For more details, refer to the online documentation included in this
+distribution. The documentation is also available online:
+
+http://doc.qt.io/qt-5/index.html
 
 The Qt version 5.12 series is binary compatible with the 5.11.x series.
 Applications compiled for 5.11 will continue to run with 5.12.
@@ -16,7 +18,16 @@ Each of these identifiers can be entered in the bug tracker to obtain more
 information about a particular change.
 
 ****************************************************************************
-*                               Qt 5.12.0 changes                          *
+*                              Qt 5.12.1 Changes                           *
 ****************************************************************************
 
- -  EntityLoader now also supports loading an Entity from a Component
+ - Fixes to support loading uncompressed HDR textures
+ - Do not set texture layers when target is a 3D texture
+ - Recompute bounding volumes when a geometry buffer changes
+ - Fixes to PBR Metal Rough material on OpenGL ES 3 platforms
+ - Fix ordering of parameters to glDrawArraysInstancedBaseInstance
+ - Initialize texture internal format to NoFormat
+ - Do not send incorrect texture format back to frontend
+ - Fix loading of animation aspect on iOS
+ - Fix for locking in Scene3D rendering loop
+ - Various documentation fixes
