@@ -4,7 +4,7 @@ libQt53DAnimation.so.5:Qt_5.1
 libQt53DAnimation.so.5:Qt_5.10
 libQt53DAnimation.so.5:Qt_5.11
 libQt53DAnimation.so.5:Qt_5.12
-libQt53DAnimation.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DAnimation.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DAnimation.so.5:Qt_5.2
 libQt53DAnimation.so.5:Qt_5.3
 libQt53DAnimation.so.5:Qt_5.4
@@ -499,7 +499,7 @@ libQt53DCore.so.5:Qt_5.1
 libQt53DCore.so.5:Qt_5.10
 libQt53DCore.so.5:Qt_5.11
 libQt53DCore.so.5:Qt_5.12
-libQt53DCore.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DCore.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DCore.so.5:Qt_5.2
 libQt53DCore.so.5:Qt_5.3
 libQt53DCore.so.5:Qt_5.4
@@ -1169,6 +1169,7 @@ libQt53DCore.so.5:_ZN8Qt3DCore6QSceneD2Ev
 libQt53DCore.so.5:_ZN8Qt3DCore7QEntity11qt_metacallEN11QMetaObject4CallEiPPv
 libQt53DCore.so.5:_ZN8Qt3DCore7QEntity11qt_metacastEPKc
 libQt53DCore.so.5:_ZN8Qt3DCore7QEntity12addComponentEPNS_10QComponentE
+libQt53DCore.so.5:_ZN8Qt3DCore7QEntity15onParentChangedEP7QObject
 libQt53DCore.so.5:_ZN8Qt3DCore7QEntity15removeComponentEPNS_10QComponentE
 libQt53DCore.so.5:_ZN8Qt3DCore7QEntityC1EPNS_5QNodeE
 libQt53DCore.so.5:_ZN8Qt3DCore7QEntityC1ERNS_14QEntityPrivateEPNS_5QNodeE
@@ -1328,6 +1329,7 @@ libQt53DCore.so.5:_ZNK8Qt3DCore6QJoint9rotationZEv
 libQt53DCore.so.5:_ZNK8Qt3DCore6QScene10lookupNodeENS_7QNodeIdE
 libQt53DCore.so.5:_ZNK8Qt3DCore6QScene11lookupNodesERK7QVectorINS_7QNodeIdEE
 libQt53DCore.so.5:_ZNK8Qt3DCore6QScene17lookupObservablesENS_7QNodeIdE
+libQt53DCore.so.5:_ZNK8Qt3DCore6QScene19postConstructorInitEv
 libQt53DCore.so.5:_ZNK8Qt3DCore6QScene20entitiesForComponentENS_7QNodeIdE
 libQt53DCore.so.5:_ZNK8Qt3DCore6QScene20nodeIdFromObservableEPNS_20QObservableInterfaceE
 libQt53DCore.so.5:_ZNK8Qt3DCore6QScene27lookupNodePropertyTrackDataENS_7QNodeIdE
@@ -1376,7 +1378,7 @@ libQt53DExtras.so.5:Qt_5.1
 libQt53DExtras.so.5:Qt_5.10
 libQt53DExtras.so.5:Qt_5.11
 libQt53DExtras.so.5:Qt_5.12
-libQt53DExtras.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DExtras.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DExtras.so.5:Qt_5.2
 libQt53DExtras.so.5:Qt_5.3
 libQt53DExtras.so.5:Qt_5.4
@@ -2266,7 +2268,7 @@ libQt53DInput.so.5:Qt_5.1
 libQt53DInput.so.5:Qt_5.10
 libQt53DInput.so.5:Qt_5.11
 libQt53DInput.so.5:Qt_5.12
-libQt53DInput.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DInput.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DInput.so.5:Qt_5.2
 libQt53DInput.so.5:Qt_5.3
 libQt53DInput.so.5:Qt_5.4
@@ -2756,7 +2758,7 @@ libQt53DLogic.so.5:Qt_5.1
 libQt53DLogic.so.5:Qt_5.10
 libQt53DLogic.so.5:Qt_5.11
 libQt53DLogic.so.5:Qt_5.12
-libQt53DLogic.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DLogic.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DLogic.so.5:Qt_5.2
 libQt53DLogic.so.5:Qt_5.3
 libQt53DLogic.so.5:Qt_5.4
@@ -2796,7 +2798,7 @@ libQt53DQuick.so.5:Qt_5.1
 libQt53DQuick.so.5:Qt_5.10
 libQt53DQuick.so.5:Qt_5.11
 libQt53DQuick.so.5:Qt_5.12
-libQt53DQuick.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DQuick.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DQuick.so.5:Qt_5.2
 libQt53DQuick.so.5:Qt_5.3
 libQt53DQuick.so.5:Qt_5.4
@@ -2904,10 +2906,16 @@ libQt53DQuick.so.5:_ZN8Qt3DCore5Quick20QQuaternionAnimationC1EP7QObject
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick20QQuaternionAnimationC2EP7QObject
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick20Quick3D_registerTypeEPKcS2_ii
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick20Quick3D_uninitializeEv
+libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType11setHsvValueEd
+libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType15setHslLightnessEd
+libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType16setHslSaturationEd
+libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType16setHsvSaturationEd
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType4setAEd
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType4setBEd
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType4setGEd
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType4setREd
+libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType9setHslHueEd
+libQt53DQuick.so.5:_ZN8Qt3DCore5Quick21Quick3DColorValueType9setHsvHueEd
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick23Quick3DNodeInstantiator10classBeginEv
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick23Quick3DNodeInstantiator11objectAddedEiP7QObject
 libQt53DQuick.so.5:_ZN8Qt3DCore5Quick23Quick3DNodeInstantiator11qt_metacallEN11QMetaObject4CallEiPPv
@@ -2966,10 +2974,16 @@ libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick20QQuaternionAnimation13fromZRotationEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick20QQuaternionAnimation2toEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick20QQuaternionAnimation4fromEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick20QQuaternionAnimation4typeEv
+libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType12hslLightnessEv
+libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType13hslSaturationEv
+libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType13hsvSaturationEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType1aEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType1bEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType1gEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType1rEv
+libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType6hslHueEv
+libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType6hsvHueEv
+libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType8hsvValueEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick21Quick3DColorValueType8toStringEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick23Quick3DNodeInstantiator10metaObjectEv
 libQt53DQuick.so.5:_ZNK8Qt3DCore5Quick23Quick3DNodeInstantiator5countEv
@@ -3053,7 +3067,7 @@ libQt53DQuickAnimation.so.5:Qt_5.1
 libQt53DQuickAnimation.so.5:Qt_5.10
 libQt53DQuickAnimation.so.5:Qt_5.11
 libQt53DQuickAnimation.so.5:Qt_5.12
-libQt53DQuickAnimation.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DQuickAnimation.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DQuickAnimation.so.5:Qt_5.2
 libQt53DQuickAnimation.so.5:Qt_5.3
 libQt53DQuickAnimation.so.5:Qt_5.4
@@ -3140,7 +3154,7 @@ libQt53DQuickExtras.so.5:Qt_5.1
 libQt53DQuickExtras.so.5:Qt_5.10
 libQt53DQuickExtras.so.5:Qt_5.11
 libQt53DQuickExtras.so.5:Qt_5.12
-libQt53DQuickExtras.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DQuickExtras.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DQuickExtras.so.5:Qt_5.2
 libQt53DQuickExtras.so.5:Qt_5.3
 libQt53DQuickExtras.so.5:Qt_5.4
@@ -3220,7 +3234,7 @@ libQt53DQuickInput.so.5:Qt_5.1
 libQt53DQuickInput.so.5:Qt_5.10
 libQt53DQuickInput.so.5:Qt_5.11
 libQt53DQuickInput.so.5:Qt_5.12
-libQt53DQuickInput.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DQuickInput.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DQuickInput.so.5:Qt_5.2
 libQt53DQuickInput.so.5:Qt_5.3
 libQt53DQuickInput.so.5:Qt_5.4
@@ -3302,7 +3316,7 @@ libQt53DQuickRender.so.5:Qt_5.1
 libQt53DQuickRender.so.5:Qt_5.10
 libQt53DQuickRender.so.5:Qt_5.11
 libQt53DQuickRender.so.5:Qt_5.12
-libQt53DQuickRender.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DQuickRender.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DQuickRender.so.5:Qt_5.2
 libQt53DQuickRender.so.5:Qt_5.3
 libQt53DQuickRender.so.5:Qt_5.4
@@ -3556,7 +3570,7 @@ libQt53DQuickScene2D.so.5:Qt_5.1
 libQt53DQuickScene2D.so.5:Qt_5.10
 libQt53DQuickScene2D.so.5:Qt_5.11
 libQt53DQuickScene2D.so.5:Qt_5.12
-libQt53DQuickScene2D.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DQuickScene2D.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DQuickScene2D.so.5:Qt_5.2
 libQt53DQuickScene2D.so.5:Qt_5.3
 libQt53DQuickScene2D.so.5:Qt_5.4
@@ -3642,7 +3656,7 @@ libQt53DRender.so.5:Qt_5.1
 libQt53DRender.so.5:Qt_5.10
 libQt53DRender.so.5:Qt_5.11
 libQt53DRender.so.5:Qt_5.12
-libQt53DRender.so.5:Qt_5.12.3_PRIVATE_API
+libQt53DRender.so.5:Qt_5.12.4_PRIVATE_API
 libQt53DRender.so.5:Qt_5.2
 libQt53DRender.so.5:Qt_5.3
 libQt53DRender.so.5:Qt_5.4
@@ -4422,6 +4436,7 @@ libQt53DRender.so.5:_ZN10Qt3DRender15QComputeCommandD1Ev
 libQt53DRender.so.5:_ZN10Qt3DRender15QComputeCommandD2Ev
 libQt53DRender.so.5:_ZN10Qt3DRender15QFrameGraphNode11qt_metacallEN11QMetaObject4CallEiPPv
 libQt53DRender.so.5:_ZN10Qt3DRender15QFrameGraphNode11qt_metacastEPKc
+libQt53DRender.so.5:_ZN10Qt3DRender15QFrameGraphNode15onParentChangedEP7QObject
 libQt53DRender.so.5:_ZN10Qt3DRender15QFrameGraphNodeC1EPN8Qt3DCore5QNodeE
 libQt53DRender.so.5:_ZN10Qt3DRender15QFrameGraphNodeC1ERNS_22QFrameGraphNodePrivateEPN8Qt3DCore5QNodeE
 libQt53DRender.so.5:_ZN10Qt3DRender15QFrameGraphNodeC2EPN8Qt3DCore5QNodeE
@@ -5337,6 +5352,9 @@ libQt53DRender.so.5:_ZN10Qt3DRender6Render23UpdateWorldTransformJob3runEv
 libQt53DRender.so.5:_ZN10Qt3DRender6Render23UpdateWorldTransformJob7setRootEPNS0_6EntityE
 libQt53DRender.so.5:_ZN10Qt3DRender6Render23UpdateWorldTransformJobC1Ev
 libQt53DRender.so.5:_ZN10Qt3DRender6Render23UpdateWorldTransformJobC2Ev
+libQt53DRender.so.5:_ZN10Qt3DRender6Render24UpdateEntityHierarchyJob3runEv
+libQt53DRender.so.5:_ZN10Qt3DRender6Render24UpdateEntityHierarchyJobC1Ev
+libQt53DRender.so.5:_ZN10Qt3DRender6Render24UpdateEntityHierarchyJobC2Ev
 libQt53DRender.so.5:_ZN10Qt3DRender6Render25UpdateMeshTriangleListJob11setManagersEPNS0_12NodeManagersE
 libQt53DRender.so.5:_ZN10Qt3DRender6Render25UpdateMeshTriangleListJob3runEv
 libQt53DRender.so.5:_ZN10Qt3DRender6Render25UpdateMeshTriangleListJobC1Ev
