@@ -5,7 +5,7 @@ libQt53DAnimation.so.5:Qt_5.10
 libQt53DAnimation.so.5:Qt_5.11
 libQt53DAnimation.so.5:Qt_5.12
 libQt53DAnimation.so.5:Qt_5.13
-libQt53DAnimation.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DAnimation.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DAnimation.so.5:Qt_5.2
 libQt53DAnimation.so.5:Qt_5.3
 libQt53DAnimation.so.5:Qt_5.4
@@ -501,7 +501,7 @@ libQt53DCore.so.5:Qt_5.10
 libQt53DCore.so.5:Qt_5.11
 libQt53DCore.so.5:Qt_5.12
 libQt53DCore.so.5:Qt_5.13
-libQt53DCore.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DCore.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DCore.so.5:Qt_5.2
 libQt53DCore.so.5:Qt_5.3
 libQt53DCore.so.5:Qt_5.4
@@ -1382,7 +1382,7 @@ libQt53DExtras.so.5:Qt_5.10
 libQt53DExtras.so.5:Qt_5.11
 libQt53DExtras.so.5:Qt_5.12
 libQt53DExtras.so.5:Qt_5.13
-libQt53DExtras.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DExtras.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DExtras.so.5:Qt_5.2
 libQt53DExtras.so.5:Qt_5.3
 libQt53DExtras.so.5:Qt_5.4
@@ -2273,7 +2273,7 @@ libQt53DInput.so.5:Qt_5.10
 libQt53DInput.so.5:Qt_5.11
 libQt53DInput.so.5:Qt_5.12
 libQt53DInput.so.5:Qt_5.13
-libQt53DInput.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DInput.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DInput.so.5:Qt_5.2
 libQt53DInput.so.5:Qt_5.3
 libQt53DInput.so.5:Qt_5.4
@@ -2764,7 +2764,7 @@ libQt53DLogic.so.5:Qt_5.10
 libQt53DLogic.so.5:Qt_5.11
 libQt53DLogic.so.5:Qt_5.12
 libQt53DLogic.so.5:Qt_5.13
-libQt53DLogic.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DLogic.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DLogic.so.5:Qt_5.2
 libQt53DLogic.so.5:Qt_5.3
 libQt53DLogic.so.5:Qt_5.4
@@ -2805,7 +2805,7 @@ libQt53DQuick.so.5:Qt_5.10
 libQt53DQuick.so.5:Qt_5.11
 libQt53DQuick.so.5:Qt_5.12
 libQt53DQuick.so.5:Qt_5.13
-libQt53DQuick.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DQuick.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DQuick.so.5:Qt_5.2
 libQt53DQuick.so.5:Qt_5.3
 libQt53DQuick.so.5:Qt_5.4
@@ -3075,7 +3075,7 @@ libQt53DQuickAnimation.so.5:Qt_5.10
 libQt53DQuickAnimation.so.5:Qt_5.11
 libQt53DQuickAnimation.so.5:Qt_5.12
 libQt53DQuickAnimation.so.5:Qt_5.13
-libQt53DQuickAnimation.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DQuickAnimation.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DQuickAnimation.so.5:Qt_5.2
 libQt53DQuickAnimation.so.5:Qt_5.3
 libQt53DQuickAnimation.so.5:Qt_5.4
@@ -3163,7 +3163,7 @@ libQt53DQuickExtras.so.5:Qt_5.10
 libQt53DQuickExtras.so.5:Qt_5.11
 libQt53DQuickExtras.so.5:Qt_5.12
 libQt53DQuickExtras.so.5:Qt_5.13
-libQt53DQuickExtras.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DQuickExtras.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DQuickExtras.so.5:Qt_5.2
 libQt53DQuickExtras.so.5:Qt_5.3
 libQt53DQuickExtras.so.5:Qt_5.4
@@ -3244,7 +3244,7 @@ libQt53DQuickInput.so.5:Qt_5.10
 libQt53DQuickInput.so.5:Qt_5.11
 libQt53DQuickInput.so.5:Qt_5.12
 libQt53DQuickInput.so.5:Qt_5.13
-libQt53DQuickInput.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DQuickInput.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DQuickInput.so.5:Qt_5.2
 libQt53DQuickInput.so.5:Qt_5.3
 libQt53DQuickInput.so.5:Qt_5.4
@@ -3327,7 +3327,7 @@ libQt53DQuickRender.so.5:Qt_5.10
 libQt53DQuickRender.so.5:Qt_5.11
 libQt53DQuickRender.so.5:Qt_5.12
 libQt53DQuickRender.so.5:Qt_5.13
-libQt53DQuickRender.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DQuickRender.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DQuickRender.so.5:Qt_5.2
 libQt53DQuickRender.so.5:Qt_5.3
 libQt53DQuickRender.so.5:Qt_5.4
@@ -3582,7 +3582,7 @@ libQt53DQuickScene2D.so.5:Qt_5.10
 libQt53DQuickScene2D.so.5:Qt_5.11
 libQt53DQuickScene2D.so.5:Qt_5.12
 libQt53DQuickScene2D.so.5:Qt_5.13
-libQt53DQuickScene2D.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DQuickScene2D.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DQuickScene2D.so.5:Qt_5.2
 libQt53DQuickScene2D.so.5:Qt_5.3
 libQt53DQuickScene2D.so.5:Qt_5.4
@@ -3669,7 +3669,7 @@ libQt53DRender.so.5:Qt_5.10
 libQt53DRender.so.5:Qt_5.11
 libQt53DRender.so.5:Qt_5.12
 libQt53DRender.so.5:Qt_5.13
-libQt53DRender.so.5:Qt_5.13.1_PRIVATE_API
+libQt53DRender.so.5:Qt_5.13.2_PRIVATE_API
 libQt53DRender.so.5:Qt_5.2
 libQt53DRender.so.5:Qt_5.3
 libQt53DRender.so.5:Qt_5.4
@@ -5507,6 +5507,7 @@ libQt53DRender.so.5:_ZN10Qt3DRender6Render8Renderer8doRenderEb
 libQt53DRender.so.5:_ZN10Qt3DRender6Render8Renderer8shutdownEv
 libQt53DRender.so.5:_ZN10Qt3DRender6Render8Renderer9dirtyBitsEv
 libQt53DRender.so.5:_ZN10Qt3DRender6Render8Renderer9markDirtyE6QFlagsINS0_16AbstractRenderer20BackendNodeDirtyFlagEEPNS0_11BackendNodeE
+libQt53DRender.so.5:_ZN10Qt3DRender6Render8Renderer9setScreenEP7QScreen
 libQt53DRender.so.5:_ZN10Qt3DRender6Render8RendererC1ENS_13QRenderAspect10RenderTypeE
 libQt53DRender.so.5:_ZN10Qt3DRender6Render8RendererC2ENS_13QRenderAspect10RenderTypeE
 libQt53DRender.so.5:_ZN10Qt3DRender6Render8RendererD0Ev
@@ -6286,6 +6287,7 @@ libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer20pendingPickingEventsEv
 libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer22createRenderBufferJobsEv
 libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer26requiresVAOAttributeUpdateEPNS0_8GeometryEPNS0_13RenderCommandE
 libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer4timeEv
+libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer6screenEv
 libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer8dumpInfoEv
 libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer8settingsEv
 libQt53DRender.so.5:_ZNK10Qt3DRender6Render8Renderer9canRenderEv
