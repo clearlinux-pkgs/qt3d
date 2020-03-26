@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.14.1
-Release  : 25
+Release  : 26
 URL      : https://download.qt.io/official_releases/qt/5.14/5.14.1/submodules/qt3d-everywhere-src-5.14.1.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.14/5.14.1/submodules/qt3d-everywhere-src-5.14.1.tar.xz
 Summary  : No detailed summary available
@@ -103,7 +103,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1580241177
+export SOURCE_DATE_EPOCH=1585188190
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-5.14.1/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2
