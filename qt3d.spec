@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.0
-Release  : 28
+Release  : 29
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.0/submodules/qt3d-everywhere-src-5.15.0.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.0/submodules/qt3d-everywhere-src-5.15.0.tar.xz
 Summary  : No detailed summary available
@@ -113,7 +113,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1589480078
+export SOURCE_DATE_EPOCH=1622861424
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-5.15.0/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2
@@ -1900,6 +1900,7 @@ popd
 /usr/lib64/qt5/qml/QtQuick/Scene2D/plugins.qmltypes
 /usr/lib64/qt5/qml/QtQuick/Scene2D/qmldir
 /usr/lib64/qt5/qml/QtQuick/Scene3D/libqtquickscene3dplugin.so
+/usr/lib64/qt5/qml/QtQuick/Scene3D/libqtquickscene3dplugin.so.avx2
 /usr/lib64/qt5/qml/QtQuick/Scene3D/plugins.qmltypes
 /usr/lib64/qt5/qml/QtQuick/Scene3D/qmldir
 
