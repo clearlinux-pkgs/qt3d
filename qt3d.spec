@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 36
+Release  : 37
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -33,6 +33,7 @@ BuildRequires : pkgconfig(Qt5Widgets)
 BuildRequires : pkgconfig(assimp)
 BuildRequires : qtbase-staticdev
 BuildRequires : zlib-dev
+Patch1: qt3d-stable-branch.patch
 
 %description
 This directory contains the Qt3D project for Qt5:
@@ -99,6 +100,7 @@ license components for the qt3d package.
 %prep
 %setup -q -n qt3d-everywhere-src-5.15.2
 cd %{_builddir}/qt3d-everywhere-src-5.15.2
+%patch1 -p1
 pushd ..
 cp -a qt3d-everywhere-src-5.15.2 buildavx2
 popd
@@ -118,13 +120,13 @@ test -r config.log && cat config.log
 make  %{?_smp_mflags}
 pushd ../buildavx2/
 %qmake 'QT_CPU_FEATURES.x86_64 += avx avx2 bmi bmi2 f16c fma lzcnt popcnt'\
-    QMAKE_CFLAGS+=-march=x86-64-v3 QMAKE_CXXFLAGS+=-march=x86-64-v3 \
+    QMAKE_CFLAGS+="-march=x86-64-v3 -Wl,-z,x86-64-v3" QMAKE_CXXFLAGS+="-march=x86-64-v3 -Wl,-z,x86-64-v3" \
     QMAKE_LFLAGS+=-march=x86-64-v3 QMAKE_CFLAGS+=-fno-lto QMAKE_CXXFLAGS+=-fno-lto  
 make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1633887099
+export SOURCE_DATE_EPOCH=1643739046
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2
@@ -153,9 +155,9 @@ cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/imgui/LICENSE_imstb.txt 
 cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/imgui/LICENSE_proggyclean.txt %{buildroot}/usr/share/package-licenses/qt3d/26c55ac59654bf077930b570224776e374716d75
 pushd ../buildavx2/
 %make_install_v3
-/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}
 popd
 %make_install
+/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}
 
 %files
 %defattr(-,root,root,-)

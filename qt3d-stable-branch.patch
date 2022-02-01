@@ -1,0 +1,3443 @@
+Antti Määttä (1):
+      Fix parameter priorization documentation
+
+Jani Heikkinen (1):
+      Bump version
+
+Jim Albamont (4):
+      Fix disabling shader cache via environment variable
+      Fix binding of CubeMapArray textures
+      Fix sampler2DArrayShadow uniform in QShaderGenerator
+      Add missing sampler types and sizes to gl4 helpers
+
+Joni Poikelin (1):
+      Allow assimp to compile on non-gcc compilers
+
+Juan Casafranca (1):
+      Check if texture upload is full sized
+
+Juan José Casafranca (1):
+      Add mipmaps count to QAbstracTexturePrivate
+
+Mauro Persano (1):
+      Fix call to drawBuffers in SubmissionContext
+
+Michael Brasser (1):
+      Handle invalid entity names in QSceneLoader::component
+
+Mike Krus (3):
+      Introduce QGeometryRendererPrivate::sortIndex
+      Print warning about using primitive restart on ES2
+      Fix multi-view picking
+
+Nicolas Guichard (1):
+      ObjectPicker: ensure pristine pickers are handled
+
+Paul Lemire (22):
+      Add caching mechanism to ShaderBuilder
+      Add dedicated Qt3D.Renderer.ShaderCache logging category
+      Fix GLTexture cleanup
+      Scene3DItem: release frontend/backend tree on destruction
+      Only set the state flag after having merged with the other states
+      SyncRenderViewPreCommandUpdate: fix a few odd cases
+      OpenGL renderer: fix use of outdated VAO when shader is reloaded
+      QShaderProgramBuilder: add documentation related to caching
+      qpicktriangleevent_p.h Add missing private API warning
+      Fix light uniforms not properly being updated
+      Restore ObjectLevelLockingPolicy on ShaderManager
+      Don't export QKeyFrame which is fully implemented in the header
+      Rerun bounding volume update jobs when entity enabled property changes
+      CameraLens: use ParametersDirty rather than AllDirty
+      Fix for QShaderNode fix that selected highest version number of a rule
+      Picking: reuse LayerFilterJob to perform layer filtering
+      ComputeCommand: call markDirty(ComputeDirty) when enabled changes
+      ObjectPicker: markDirty(AllDirty) when we change the enabled property
+      OpenGL: Fix content not updated when using OnDemand and switching textures
+      AnimationClip: fix the way we compute the duration
+      Revert "AnimationClip: fix the way we compute the duration"
+      OpenGL renderer: restore surface on context when shutting down
+
+Sean Harmer (2):
+      Render enough frames to flush the Qt3D pipeline when dirty
+      Trigger an update on the quick window when creating a render aspect
+
+diff --git a/dist/changes-5.15.2 b/dist/changes-5.15.2
+deleted file mode 100644
+index c0265e123..000000000
+--- a/dist/changes-5.15.2
++++ /dev/null
+@@ -1,65 +0,0 @@
+-Qt 5.15.2 is a bug-fix release. It maintains both forward and backward
+-compatibility (source and binary) with Qt 5.15.1.
+-
+-For more details, refer to the online documentation included in this
+-distribution. The documentation is also available online:
+-
+-  https://doc.qt.io/qt-5.15/index.html
+-
+-The Qt version 5.15 series is binary compatible with the 5.14.x series.
+-Applications compiled for 5.14 will continue to run with 5.15.
+-
+-Some of the changes listed in this file include issue tracking numbers
+-corresponding to tasks in the Qt Bug Tracker:
+-
+-  https://bugreports.qt.io/
+-
+-Each of these identifiers can be entered in the bug tracker to obtain more
+-information about a particular change.
+-
+-****************************************************************************
+-*                   Important Behavior Changes                             *
+-****************************************************************************
+-
+-****************************************************************************
+-*                          Library                                         *
+-****************************************************************************
+-
+- - [QTBUG-85018] Update QShaderFormat matching logic to account for RHI shader snippets
+-   OpenGLCompatibility/NoProfile should not match RHI shader snippets.
+-   The bug was: [REG: 5.14->5.15] QOpenGLShader::compile(Fragment):
+-   ERROR: 4:2: 'add' : syntax error syntax error
+- - [QTBUG-86436] Only set the format to 1.0 if it was not changed due to OpenGL
+-   Since the userRequestedApi variable can be set when a second
+-   Qt3DWindow is created (since the environment variable is set after the
+-   first time). Then we should be sure to only set the format version to
+-   1.0 if it was not already set due to OpenGL being used.
+-   The bug was: Shader errors if there are multiple windows
+- - [QTBUG-86721] Only use surfaceSize if m_surfaceSize is not valid
+-   This amends 2e3607aa120324f60832ca1cd42aaeaf22cc148d which made it
+-   always use surfaceSize. But if m_surfaceSize->size() is valid then
+-   this should be used as it will account for HighDPI setups.
+-   The bug was: [Regression] Scene3D rendering with underlay composition
+-   on HighDpi display is incorrect.
+- - [QTBUG-84847] Rework Scene3D to fix potential crash on shutdown
+-   - Rework Scene3DRenderer/Scene3DItem to remove coupling and help
+-   simplify the flow - Introduce a Scene3DManagerNode to manager lifetime
+-   of the Scene3DRenderer. Rely on the Scene3DManagerNode dtor to know to
+-   shutdown the Qt3D renderer in the proper thread. - Try to handle the
+-   fact that destruction order between Item and SGNode is random by using
+-   an AspectEngineDestroyer helper - Stop using a sharedptr to store the
+-   QEntity on the Scene3DItem side. This can lead to crashes as the
+-   AspectEngine assumes it is the sole owner of the Entity ptr.
+-   Change-Id: I14915705eb9ab1195b2b783cbbb45076acc2ac1a
+-   The bug was: Scene3D crashes on destruction
+-
+-Third-Party Code
+-----------------
+-
+- - Also document sub-projects that are part of the Assimp project: Clipper,
+-   irrXML, Open3DGC, OpenDLL-Parser, Poly2Tri, RapidJSON, Unzip, Utf8Cpp, and
+-   Zip.
+-
+- - Fix issue in the documentation that caused attributions for imgui
+-   third-party code to not show up.
+-
+diff --git a/src/animation/backend/animationclip.cpp b/src/animation/backend/animationclip.cpp
+index 2c7e4fffb..78152c5bc 100644
+--- a/src/animation/backend/animationclip.cpp
++++ b/src/animation/backend/animationclip.cpp
+@@ -354,7 +354,7 @@ void AnimationClip::clearData()
+ float AnimationClip::findDuration()
+ {
+     // Iterate over the contained fcurves and find the longest one
+-    double tMax = 0.0;
++    float tMax = 0.f;
+     for (const Channel &channel : qAsConst(m_channels)) {
+         for (const ChannelComponent &channelComponent : qAsConst(channel.channelComponents)) {
+             const float t = channelComponent.fcurve.endTime();
+diff --git a/src/animation/frontend/qkeyframe.h b/src/animation/frontend/qkeyframe.h
+index 87e2812b2..a05e446dd 100644
+--- a/src/animation/frontend/qkeyframe.h
++++ b/src/animation/frontend/qkeyframe.h
+@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
+ 
+ namespace Qt3DAnimation {
+ 
+-class Q_3DANIMATIONSHARED_EXPORT QKeyFrame
++class QKeyFrame
+ {
+ public:
+     enum InterpolationType : quint8 {
+diff --git a/src/plugins/renderers/opengl/graphicshelpers/graphicshelperes2.cpp b/src/plugins/renderers/opengl/graphicshelpers/graphicshelperes2.cpp
+index f485fc57b..8b9832a42 100644
+--- a/src/plugins/renderers/opengl/graphicshelpers/graphicshelperes2.cpp
++++ b/src/plugins/renderers/opengl/graphicshelpers/graphicshelperes2.cpp
+@@ -709,6 +709,11 @@ void GraphicsHelperES2::memoryBarrier(QMemoryBarrier::Operations barriers)
+ 
+ void GraphicsHelperES2::enablePrimitiveRestart(int)
+ {
++    static bool showWarning = true;
++    if (!showWarning)
++        return;
++    showWarning = false;
++    qWarning() << "primitive restart is not supported by OpenGL ES 2.0 (since GL 3.1, ES 3.0)";
+ }
+ 
+ void GraphicsHelperES2::enableVertexAttributeArray(int location)
+diff --git a/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_2.cpp b/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_2.cpp
+index cb0a62224..8e843bca7 100644
+--- a/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_2.cpp
++++ b/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_2.cpp
+@@ -512,8 +512,8 @@ void GraphicsHelperGL3_2::bindFrameBufferAttachment(QOpenGLTexture *texture, con
+     if (target == QOpenGLTexture::Target1DArray || target == QOpenGLTexture::Target2DArray ||
+             target == QOpenGLTexture::Target2DMultisampleArray || target == QOpenGLTexture::Target3D)
+         m_funcs->glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attr, texture->textureId(), attachment.m_mipLevel, attachment.m_layer);
+-    else if (target == QOpenGLTexture::TargetCubeMapArray)
+-        m_funcs->glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, attr, attachment.m_face, texture->textureId(), attachment.m_mipLevel, attachment.m_layer);
++    else if (target == QOpenGLTexture::TargetCubeMapArray && attachment.m_face != QAbstractTexture::AllFaces)
++        m_funcs->glFramebufferTextureLayer( GL_DRAW_FRAMEBUFFER, attr, texture->textureId(), attachment.m_mipLevel, attachment.m_layer * 6 + (attachment.m_face - QAbstractTexture::CubeMapPositiveX));
+     else if (target == QOpenGLTexture::TargetCubeMap)
+         m_funcs->glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attr, attachment.m_face, texture->textureId(), attachment.m_mipLevel);
+     else
+diff --git a/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_3.cpp b/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_3.cpp
+index f5a61aa4b..3a8c8bde8 100644
+--- a/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_3.cpp
++++ b/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl3_3.cpp
+@@ -493,8 +493,8 @@ void GraphicsHelperGL3_3::bindFrameBufferAttachment(QOpenGLTexture *texture, con
+     if (target == QOpenGLTexture::Target1DArray || target == QOpenGLTexture::Target2DArray ||
+             target == QOpenGLTexture::Target2DMultisampleArray || target == QOpenGLTexture::Target3D)
+         m_funcs->glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attr, texture->textureId(), attachment.m_mipLevel, attachment.m_layer);
+-    else if (target == QOpenGLTexture::TargetCubeMapArray)
+-        m_funcs->glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, attr, attachment.m_face, texture->textureId(), attachment.m_mipLevel, attachment.m_layer);
++    else if (target == QOpenGLTexture::TargetCubeMapArray && attachment.m_face != QAbstractTexture::AllFaces)
++        m_funcs->glFramebufferTextureLayer( GL_DRAW_FRAMEBUFFER, attr, texture->textureId(), attachment.m_mipLevel, attachment.m_layer * 6 + (attachment.m_face - QAbstractTexture::CubeMapPositiveX));
+     else if (target == QOpenGLTexture::TargetCubeMap && attachment.m_face != QAbstractTexture::AllFaces)
+         m_funcs->glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attr, attachment.m_face, texture->textureId(), attachment.m_mipLevel);
+     else
+diff --git a/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl4.cpp b/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl4.cpp
+index 96e055870..a472da774 100644
+--- a/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl4.cpp
++++ b/src/plugins/renderers/opengl/graphicshelpers/graphicshelpergl4.cpp
+@@ -634,6 +634,7 @@ UniformType GraphicsHelperGL4::uniformTypeFromGLType(GLenum type)
+     case GL_SAMPLER_1D:
+     case GL_SAMPLER_1D_ARRAY:
+     case GL_SAMPLER_1D_SHADOW:
++    case GL_SAMPLER_1D_ARRAY_SHADOW:
+     case GL_SAMPLER_2D:
+     case GL_SAMPLER_2D_RECT:
+     case GL_SAMPLER_2D_SHADOW:
+@@ -652,6 +653,7 @@ UniformType GraphicsHelperGL4::uniformTypeFromGLType(GLenum type)
+     case GL_INT_SAMPLER_2D:
+     case GL_INT_SAMPLER_3D:
+     case GL_INT_SAMPLER_BUFFER:
++    case GL_INT_SAMPLER_2D_RECT:
+     case GL_INT_SAMPLER_CUBE:
+     case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+     case GL_INT_SAMPLER_1D_ARRAY:
+@@ -662,6 +664,7 @@ UniformType GraphicsHelperGL4::uniformTypeFromGLType(GLenum type)
+     case GL_UNSIGNED_INT_SAMPLER_2D:
+     case GL_UNSIGNED_INT_SAMPLER_3D:
+     case GL_UNSIGNED_INT_SAMPLER_BUFFER:
++    case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
+     case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+     case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+     case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
+@@ -841,8 +844,8 @@ void GraphicsHelperGL4::bindFrameBufferAttachment(QOpenGLTexture *texture, const
+     if (target == QOpenGLTexture::Target1DArray || target == QOpenGLTexture::Target2DArray ||
+             target == QOpenGLTexture::Target2DMultisampleArray || target == QOpenGLTexture::Target3D)
+         m_funcs->glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attr, texture->textureId(), attachment.m_mipLevel, attachment.m_layer);
+-    else if (target == QOpenGLTexture::TargetCubeMapArray)
+-        m_funcs->glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, attr, attachment.m_face, texture->textureId(), attachment.m_mipLevel, attachment.m_layer);
++    else if (target == QOpenGLTexture::TargetCubeMapArray && attachment.m_face != QAbstractTexture::AllFaces)
++        m_funcs->glFramebufferTextureLayer( GL_DRAW_FRAMEBUFFER, attr, texture->textureId(), attachment.m_mipLevel, attachment.m_layer * 6 + (attachment.m_face - QAbstractTexture::CubeMapPositiveX));
+     else if (target == QOpenGLTexture::TargetCubeMap && attachment.m_face != QAbstractTexture::AllFaces)
+         m_funcs->glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attr, attachment.m_face, texture->textureId(), attachment.m_mipLevel);
+     else
+@@ -1078,17 +1081,21 @@ void GraphicsHelperGL4::buildUniformBuffer(const QVariant &v, const ShaderUnifor
+     case GL_INT_SAMPLER_2D:
+     case GL_INT_SAMPLER_3D:
+     case GL_INT_SAMPLER_CUBE:
++    case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+     case GL_INT_SAMPLER_BUFFER:
+     case GL_INT_SAMPLER_2D_RECT:
+     case GL_UNSIGNED_INT_SAMPLER_1D:
+     case GL_UNSIGNED_INT_SAMPLER_2D:
+     case GL_UNSIGNED_INT_SAMPLER_3D:
+     case GL_UNSIGNED_INT_SAMPLER_CUBE:
++    case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+     case GL_UNSIGNED_INT_SAMPLER_BUFFER:
+     case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
+     case GL_SAMPLER_1D_SHADOW:
+     case GL_SAMPLER_2D_SHADOW:
+     case GL_SAMPLER_CUBE_SHADOW:
++    case GL_SAMPLER_CUBE_MAP_ARRAY:
++    case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+     case GL_SAMPLER_1D_ARRAY:
+     case GL_SAMPLER_2D_ARRAY:
+     case GL_INT_SAMPLER_1D_ARRAY:
+@@ -1251,6 +1258,10 @@ uint GraphicsHelperGL4::uniformByteSize(const ShaderUniform &description)
+     case GL_SAMPLER_1D_SHADOW:
+     case GL_SAMPLER_2D_SHADOW:
+     case GL_SAMPLER_CUBE_SHADOW:
++    case GL_SAMPLER_CUBE_MAP_ARRAY:
++    case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
++    case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
++    case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+     case GL_SAMPLER_1D_ARRAY:
+     case GL_SAMPLER_2D_ARRAY:
+     case GL_INT_SAMPLER_1D_ARRAY:
+diff --git a/src/plugins/renderers/opengl/graphicshelpers/submissioncontext.cpp b/src/plugins/renderers/opengl/graphicshelpers/submissioncontext.cpp
+index ab5948e49..ef32594e1 100644
+--- a/src/plugins/renderers/opengl/graphicshelpers/submissioncontext.cpp
++++ b/src/plugins/renderers/opengl/graphicshelpers/submissioncontext.cpp
+@@ -1598,7 +1598,7 @@ void SubmissionContext::blitFramebuffer(Qt3DCore::QNodeId inputRenderTargetId,
+     if (!outputBufferIsDefault) {
+         // Note that we use glDrawBuffers, not glDrawBuffer. The
+         // latter is not available with GLES.
+-        const int buf = glAttachmentPoint(outputAttachmentPoint);
++        const int buf = outputAttachmentPoint;
+         drawBuffers(1, &buf);
+     }
+ 
+diff --git a/src/plugins/renderers/opengl/managers/glresourcemanagers_p.h b/src/plugins/renderers/opengl/managers/glresourcemanagers_p.h
+index 9472bc33f..f6dc3e2d1 100644
+--- a/src/plugins/renderers/opengl/managers/glresourcemanagers_p.h
++++ b/src/plugins/renderers/opengl/managers/glresourcemanagers_p.h
+@@ -133,6 +133,7 @@ private:
+ } // Qt3DRender
+ 
+ Q_DECLARE_RESOURCE_INFO(Qt3DRender::Render::OpenGL::OpenGLVertexArrayObject, Q_REQUIRES_CLEANUP)
++Q_DECLARE_RESOURCE_INFO(Qt3DRender::Render::OpenGL::GLTexture, Q_REQUIRES_CLEANUP)
+ 
+ QT_END_NAMESPACE
+ 
+diff --git a/src/plugins/renderers/opengl/renderer/renderer.cpp b/src/plugins/renderers/opengl/renderer/renderer.cpp
+index 25e56102b..4de847bf3 100644
+--- a/src/plugins/renderers/opengl/renderer/renderer.cpp
++++ b/src/plugins/renderers/opengl/renderer/renderer.cpp
+@@ -127,9 +127,6 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
+-// Crashes on AMD Radeon drivers on Windows. Disable for now.
+-//#define SHADER_LOADING_IN_COMMAND_THREAD
+-
+ using namespace Qt3DCore;
+ 
+ namespace Qt3DRender {
+@@ -597,38 +594,50 @@ void Renderer::releaseGraphicsResources()
+     QOpenGLContext *context = m_submissionContext->openGLContext();
+     Q_ASSERT(context);
+ 
+-    if (context->thread() == QThread::currentThread() && context->makeCurrent(offscreenSurface)) {
++    if (context->thread() == QThread::currentThread()) {
++        QSurface *lastContextSurface = context->surface();
+ 
+-        // Clean up the graphics context and any resources
+-        const std::vector<HGLTexture> &activeTexturesHandles = m_glResourceManagers->glTextureManager()->activeHandles();
+-        for (const HGLTexture &textureHandle : activeTexturesHandles) {
+-            GLTexture *tex = m_glResourceManagers->glTextureManager()->data(textureHandle);
+-            tex->destroy();
+-        }
++        if (context->makeCurrent(offscreenSurface)) {
++            // Clean up the graphics context and any resources
++            const std::vector<HGLTexture> &activeTexturesHandles = m_glResourceManagers->glTextureManager()->activeHandles();
++            for (const HGLTexture &textureHandle : activeTexturesHandles) {
++                GLTexture *tex = m_glResourceManagers->glTextureManager()->data(textureHandle);
++                tex->destroy();
++            }
+ 
+-        // Do the same thing with buffers
+-        const std::vector<HGLBuffer> &activeBuffers = m_glResourceManagers->glBufferManager()->activeHandles();
+-        for (const HGLBuffer &bufferHandle : activeBuffers) {
+-            GLBuffer *buffer = m_glResourceManagers->glBufferManager()->data(bufferHandle);
+-            buffer->destroy(m_submissionContext.data());
+-        }
++            // Do the same thing with buffers
++            const std::vector<HGLBuffer> &activeBuffers = m_glResourceManagers->glBufferManager()->activeHandles();
++            for (const HGLBuffer &bufferHandle : activeBuffers) {
++                GLBuffer *buffer = m_glResourceManagers->glBufferManager()->data(bufferHandle);
++                buffer->destroy(m_submissionContext.data());
++            }
+ 
+-        // Do the same thing with shaders
+-        const QVector<GLShader *> shaders = m_glResourceManagers->glShaderManager()->takeActiveResources();
+-        qDeleteAll(shaders);
++            // Do the same thing with shaders
++            const QVector<GLShader *> shaders = m_glResourceManagers->glShaderManager()->takeActiveResources();
++            qDeleteAll(shaders);
+ 
+-        // Do the same thing with VAOs
+-        const std::vector<HVao> &activeVaos = m_glResourceManagers->vaoManager()->activeHandles();
+-        for (const HVao &vaoHandle : activeVaos) {
+-            OpenGLVertexArrayObject *vao = m_glResourceManagers->vaoManager()->data(vaoHandle);
+-            vao->destroy();
+-        }
++            // Do the same thing with VAOs
++            const std::vector<HVao> &activeVaos = m_glResourceManagers->vaoManager()->activeHandles();
++            for (const HVao &vaoHandle : activeVaos) {
++                OpenGLVertexArrayObject *vao = m_glResourceManagers->vaoManager()->data(vaoHandle);
++                vao->destroy();
++            }
+ 
+-        m_submissionContext->releaseRenderTargets();
++            m_submissionContext->releaseRenderTargets();
+ 
+-        m_frameProfiler.reset();
+-        if (m_ownedContext)
+-            context->doneCurrent();
++            m_frameProfiler.reset();
++            if (m_ownedContext) {
++                context->doneCurrent();
++            } else {
++                // Leave the context in the state we found it in by restoring
++                // its last used surface. This satisfies expectations when used
++                // with QQuickWidgets that surface on current context after
++                // QQuickRenderControl cleanup is the same as prior to the
++                // cleanup. Arguably this could also be checked for in
++                // QQuickWidgetPrivate::invalidateRenderControl.
++                context->makeCurrent(lastContextSurface);
++            }
++        }
+     } else {
+         qWarning() << "Failed to make context current: OpenGL resources will not be destroyed";
+     }
+@@ -957,6 +966,13 @@ void Renderer::prepareCommandsSubmission(const QVector<RenderView *> &renderView
+                 // RenderCommand should have a handle to the corresponding VAO for the Mesh and Shader
+                 HVao vaoHandle;
+ 
++                // If shader was loaded this frame, skip creating VAO for the command
++                // as we have to wait for next frame to make sure command was build against valid shader
++                if (m_lastLoadedShaderIds.contains(command.m_shaderId)) {
++                    command.m_isValid = false;
++                    return;
++                }
++
+                 // Create VAO or return already created instance associated with command shader/geometry
+                 // (VAO is emulated if not supported)
+                 createOrUpdateVAO(&command, &vaoHandle, &vao);
+@@ -1311,7 +1327,6 @@ void Renderer::updateGLResources()
+         }
+     }
+ 
+-#ifndef SHADER_LOADING_IN_COMMAND_THREAD
+     {
+         Profiling::GLTimeRecorder recorder(Profiling::ShaderUpload, activeProfiler());
+         const QVector<HShader> dirtyShaderHandles = std::move(m_dirtyShaders);
+@@ -1325,9 +1340,26 @@ void Renderer::updateGLResources()
+ 
+             // Compile shader
+             m_submissionContext->loadShader(shader, shaderManager, m_glResourceManagers->glShaderManager());
++
++            // Release any VAO referencing this shader. When we build VAO, we
++            // rely on the shader introspection to know the active uniforms In
++            // case the shader is reloaded, we might end up having more/less
++            // active uniforms than prior therefore we need to ensure VAO is
++            // rebuilt.
++            VAOManager *vaoManager = m_glResourceManagers->vaoManager();
++            const std::vector<HVao> activeVaos = vaoManager->activeHandles(); // copy
++            for (const HVao &vao : activeVaos) {
++                if (vao.data() && vao->key().second == shader->peerId())
++                    vaoManager->releaseResource(vao->key());
++            }
++
++            // Record shader id in vector of vectors loaded this frame
++            // Given commands need to be built against loaded shader (at next frame)
++            // we can make use of this vector to skip operations that target this
++            // shader for this frame
++            m_lastLoadedShaderIds.push_back(shader->peerId());
+         }
+     }
+-#endif
+ 
+     {
+         Profiling::GLTimeRecorder recorder(Profiling::TextureUpload, activeProfiler());
+@@ -1852,6 +1884,7 @@ QVector<Qt3DCore::QAspectJobPtr> Renderer::renderBinJobs()
+     // Remove previous dependencies
+     m_cleanupJob->removeDependency(QWeakPointer<QAspectJob>());
+ 
++    const bool dirtyParametersForCurrentFrame = m_dirtyBits.marked & AbstractRenderer::ParameterDirty;
+     const BackendNodeDirtySet dirtyBitsForFrame = m_dirtyBits.marked | m_dirtyBits.remaining;
+     m_dirtyBits.marked = {};
+     m_dirtyBits.remaining = {};
+@@ -1975,6 +2008,10 @@ QVector<Qt3DCore::QAspectJobPtr> Renderer::renderBinJobs()
+ 
+     m_dirtyBits.remaining = dirtyBitsForFrame & notCleared;
+ 
++    // Dirty Parameters might need 2 frames to react if the parameter references a texture
++    if (dirtyParametersForCurrentFrame)
++        m_dirtyBits.remaining |= AbstractRenderer::ParameterDirty;
++
+     return renderBinJobs;
+ }
+ 
+@@ -2323,6 +2360,7 @@ void Renderer::cleanGraphicsResources()
+         // We can really release the texture at this point
+         m_nodesManager->shaderManager()->releaseResource(shaderCleanedUpId);
+     }
++    m_lastLoadedShaderIds.clear();
+ }
+ 
+ const GraphicsApiFilterData *Renderer::contextInfo() const
+diff --git a/src/plugins/renderers/opengl/renderer/renderer_p.h b/src/plugins/renderers/opengl/renderer/renderer_p.h
+index fddff18c8..556ccd21c 100644
+--- a/src/plugins/renderers/opengl/renderer/renderer_p.h
++++ b/src/plugins/renderers/opengl/renderer/renderer_p.h
+@@ -400,6 +400,7 @@ private:
+     QVector<Qt3DCore::QNodeId> m_updatedDisableSubtreeEnablers;
+     Qt3DCore::QNodeIdVector m_textureIdsToCleanup;
+     QVector<ShaderBuilderUpdate> m_shaderBuilderUpdates;
++    Qt3DCore::QNodeIdVector m_lastLoadedShaderIds;
+ 
+     bool m_ownedContext;
+ 
+diff --git a/src/plugins/renderers/opengl/renderer/renderview.cpp b/src/plugins/renderers/opengl/renderer/renderview.cpp
+index 59b323398..007fb07e0 100644
+--- a/src/plugins/renderers/opengl/renderer/renderview.cpp
++++ b/src/plugins/renderers/opengl/renderer/renderview.cpp
+@@ -839,6 +839,10 @@ void RenderView::updateRenderCommand(const EntityRenderCommandDataSubView &subVi
+             // view vector. This gives a depth value suitable as the key
+             // for BackToFront sorting.
+             command.m_depth = Vector3D::dotProduct(entity->worldBoundingVolume()->center() - m_eyePos, m_eyeViewDir);
++
++            auto geometryRenderer = m_manager->geometryRendererManager()->data(command.m_geometryRenderer);
++            if (geometryRenderer && !qFuzzyCompare(geometryRenderer->sortIndex(), -1.f))
++                command.m_depth = geometryRenderer->sortIndex();
+         } else { // Compute
+             // Note: if frameCount has reached 0 in the previous frame, isEnabled
+             // would be false
+@@ -1076,6 +1080,7 @@ void RenderView::setShaderAndUniforms(RenderCommand *command,
+         command->m_parameterPack.reserve(shader->parameterPackSize());
+     }
+ 
++    const size_t previousUniformCount = command->m_parameterPack.uniforms().size();
+     if (shader->hasActiveVariables()) {
+         const QVector<int> &standardUniformNamesIds = shader->standardUniformNameIds();
+ 
+@@ -1100,8 +1105,9 @@ void RenderView::setShaderAndUniforms(RenderCommand *command,
+         updateLightUniforms(command, entity);
+     }
+ 
++    const size_t actualUniformCount = command->m_parameterPack.uniforms().size();
+     // Prepare the ShaderParameterPack based on the active uniforms of the shader
+-    if (!updateUniformsOnly)
++    if (!updateUniformsOnly || previousUniformCount != actualUniformCount)
+         shader->prepareUniforms(command->m_parameterPack);
+ }
+ 
+diff --git a/src/plugins/renderers/opengl/renderer/renderviewbuilder.cpp b/src/plugins/renderers/opengl/renderer/renderviewbuilder.cpp
+index 32667dceb..41aef69a0 100644
+--- a/src/plugins/renderers/opengl/renderer/renderviewbuilder.cpp
++++ b/src/plugins/renderers/opengl/renderer/renderviewbuilder.cpp
+@@ -370,13 +370,15 @@ public:
+                 // Record the updated viewProjectionMatrix in the cache to allow check to be performed
+                 // next frame
+                 cacheForLeaf.viewProjectionMatrix = rv->viewProjectionMatrix();
++            }
+ 
+-                // Filter out frustum culled entity for drawable entities and store in cache
+-                if (isDraw && rv->frustumCulling()) {
+-                    cacheForLeaf.filteredAndCulledRenderables = RenderViewBuilder::entitiesInSubset(
+-                                cacheForLeaf.layeredFilteredRenderables,
+-                                m_frustumCullingJob->visibleEntities());
+-                }
++            // Filter out frustum culled entity for drawable entities and store in cache
++            // We need to check this regardless of whether the camera has moved since
++            // entities in the scene themselves could have moved
++            if (isDraw && rv->frustumCulling()) {
++                cacheForLeaf.filteredAndCulledRenderables = RenderViewBuilder::entitiesInSubset(
++                            cacheForLeaf.layeredFilteredRenderables,
++                            m_frustumCullingJob->visibleEntities());
+             }
+ 
+             rv->setMaterialParameterTable(cacheForLeaf.materialParameterGatherer);
+@@ -400,10 +402,6 @@ public:
+             // Set RenderCommandDataView on RV (will be used later on to sort commands ...)
+             rv->setRenderCommandDataView(filteredCommandData);
+ 
+-            // Early return in case we have nothing to filter
+-            if (renderableEntities.size() == 0)
+-                return;
+-
+             // Filter out Render commands for which the Entity wasn't selected because
+             // of frustum, proximity or layer filtering
+             if (commandFilteringRequired) {
+diff --git a/src/plugins/renderers/opengl/renderer/shaderparameterpack_p.h b/src/plugins/renderers/opengl/renderer/shaderparameterpack_p.h
+index 5596c2937..841aae61a 100644
+--- a/src/plugins/renderers/opengl/renderer/shaderparameterpack_p.h
++++ b/src/plugins/renderers/opengl/renderer/shaderparameterpack_p.h
+@@ -105,6 +105,11 @@ struct PackUniformHash
+         values.reserve(count);
+     }
+ 
++    size_t size() const
++    {
++        return keys.size();
++    }
++
+     inline int indexForKey(int key) const
+     {
+         const auto b = keys.cbegin();
+diff --git a/src/plugins/renderers/opengl/textures/gltexture.cpp b/src/plugins/renderers/opengl/textures/gltexture.cpp
+index bb6ade197..a2c587a8d 100644
+--- a/src/plugins/renderers/opengl/textures/gltexture.cpp
++++ b/src/plugins/renderers/opengl/textures/gltexture.cpp
+@@ -92,7 +92,7 @@ void uploadGLData(QOpenGLTexture *glTex,
+                   const QByteArray &bytes, const QTextureImageDataPtr &data)
+ {
+     if (data->isCompressed()) {
+-        qWarning() << Q_FUNC_INFO << "Uploading non full sized Compressed Data not supported yet";
++        Q_UNREACHABLE();
+     } else {
+         const auto alignment = QTextureImageDataPrivate::get(data.get())->m_alignment;
+         QOpenGLPixelTransferOptions uploadOptions;
+@@ -609,11 +609,28 @@ void GLTexture::uploadGLTextureData()
+         // layer, face or mip level, unlike the QTextureGenerator case where
+         // they are in a single blob. Hence QTextureImageData::data() is not suitable.
+ 
+-        uploadGLData(m_gl,
+-                     update.mipLevel(), update.layer(),
+-                     static_cast<QOpenGLTexture::CubeMapFace>(update.face()),
+-                     xOffset, yOffset, zOffset,
+-                     bytes, imgData);
++        // Check if this is a full sized update
++        if (xOffset == 0 &&
++            yOffset == 0 &&
++            zOffset == 0 &&
++            xExtent == m_gl->width() &&
++            yExtent == m_gl->height() &&
++            zExtent == m_gl->depth()) {
++            uploadGLData(m_gl, update.mipLevel(), update.layer(),
++                         static_cast<QOpenGLTexture::CubeMapFace>(update.face()),
++                         bytes, imgData);
++        } else {
++            if (imgData->isCompressed()) {
++                qWarning() << Q_FUNC_INFO << "Uploading non full sized Compressed Data not supported yet";
++            } else {
++
++                uploadGLData(m_gl,
++                             update.mipLevel(), update.layer(),
++                             static_cast<QOpenGLTexture::CubeMapFace>(update.face()),
++                             xOffset, yOffset, zOffset,
++                             bytes, imgData);
++            }
++        }
+     }
+ }
+ 
+diff --git a/src/plugins/renderers/rhi/renderer/renderer.cpp b/src/plugins/renderers/rhi/renderer/renderer.cpp
+index bd457dd79..ec21103fe 100644
+--- a/src/plugins/renderers/rhi/renderer/renderer.cpp
++++ b/src/plugins/renderers/rhi/renderer/renderer.cpp
+@@ -126,8 +126,6 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
+-// Crashes on AMD Radeon drivers on Windows. Disable for now.
+-//#define SHADER_LOADING_IN_COMMAND_THREAD
+ using namespace Qt3DCore;
+ 
+ namespace Qt3DRender {
+diff --git a/src/plugins/renderers/rhi/renderer/renderview.cpp b/src/plugins/renderers/rhi/renderer/renderview.cpp
+index 54295ef5f..344dc3a3b 100644
+--- a/src/plugins/renderers/rhi/renderer/renderview.cpp
++++ b/src/plugins/renderers/rhi/renderer/renderview.cpp
+@@ -826,6 +826,10 @@ void RenderView::updateRenderCommand(EntityRenderCommandData *renderCommandData,
+             command.m_depth = Vector3D::dotProduct(
+                     entity->worldBoundingVolume()->center() - m_data.m_eyePos, m_data.m_eyeViewDir);
+ 
++            auto geometryRenderer = m_manager->geometryRendererManager()->data(command.m_geometryRenderer);
++            if (geometryRenderer && !qFuzzyCompare(geometryRenderer->sortIndex(), -1.f))
++                command.m_depth = geometryRenderer->sortIndex();
++
+             environmentLight = m_environmentLight;
+             lightSources = m_lightSources;
+ 
+diff --git a/src/plugins/sceneparsers/sceneparsers.pro b/src/plugins/sceneparsers/sceneparsers.pro
+index ee48da565..a928764f5 100644
+--- a/src/plugins/sceneparsers/sceneparsers.pro
++++ b/src/plugins/sceneparsers/sceneparsers.pro
+@@ -2,7 +2,7 @@ TEMPLATE = subdirs
+ # QNX is not supported, and Linux GCC 4.9 on ARM chokes on the assimp
+ # sources (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66964).
+ QT_FOR_CONFIG += 3dcore-private
+-!ios:!tvos:!qcc:qtConfig(assimp):if(qtConfig(system-assimp)|android-clang|clang|win32-msvc):if(gcc:greaterThan(QT_GCC_MAJOR_VERSION, 4)) {
++!ios:!tvos:!qcc:qtConfig(assimp):if(qtConfig(system-assimp)|android-clang|clang|win32-msvc|gcc) {
+     SUBDIRS += assimp
+ }
+ SUBDIRS += gltf
+diff --git a/src/quick3d/imports/scene3d/scene3ditem.cpp b/src/quick3d/imports/scene3d/scene3ditem.cpp
+index a720b8aa0..126680595 100644
+--- a/src/quick3d/imports/scene3d/scene3ditem.cpp
++++ b/src/quick3d/imports/scene3d/scene3ditem.cpp
+@@ -100,13 +100,31 @@ public:
+         m_targetAllowed = targetCount;
+     }
+ 
++    Qt3DCore::QAspectEngine *aspectEngine() const
++    {
++        if (children().empty())
++            return nullptr;
++        return qobject_cast<Qt3DCore::QAspectEngine *>(children().first());
++    }
++
++    bool releaseRootEntity() const { return m_releaseRootEntity; }
++    void setReleaseRootEntity(bool release) { m_releaseRootEntity = release; }
++
+     void allowRelease()
+     {
+         ++m_allowed;
+-        if (m_allowed == m_targetAllowed) {
+-            if (QThread::currentThread() == thread())
++        const bool shouldSelfDestruct = m_allowed == m_targetAllowed;
++        if (QThread::currentThread() == thread()) {
++            // Force Backend Tree to be cleaned up
++            Qt3DCore::QAspectEngine *engine = aspectEngine();
++            // If used in the regular Scene3D, take this opportunity to release the root
++            // Entity which will release the backend entities of Qt3D
++            if (m_releaseRootEntity && engine && engine->rootEntity())
++                engine->setRootEntity(Qt3DCore::QEntityPtr());
++            if (shouldSelfDestruct)
+                 delete this;
+-            else
++        } else {
++            if (shouldSelfDestruct)
+                 deleteLater();
+         }
+     }
+@@ -118,6 +136,7 @@ private:
+     int m_allowed = 0;
+     int m_targetAllowed = 0;
+     bool m_sgNodeAlive = false;
++    bool m_releaseRootEntity = true;
+ };
+ 
+ /*!
+@@ -200,6 +219,7 @@ Scene3DItem::Scene3DItem(QQuickItem *parent)
+     , m_cameraAspectRatioMode(AutomaticAspectRatio)
+     , m_compositingMode(FBO)
+     , m_dummySurface(nullptr)
++    , m_framesToRender(ms_framesNeededToFlushPipeline)
+ {
+     setFlag(QQuickItem::ItemHasContents, true);
+     setAcceptedMouseButtons(Qt::MouseButtonMask);
+@@ -523,8 +543,13 @@ bool Scene3DItem::needsRender(QRenderAspect *renderAspect)
+             || (renderAspectPriv
+                 && renderAspectPriv->m_renderer
+                 && renderAspectPriv->m_renderer->shouldRender());
+-    m_dirty = false;
+-    return dirty;
++
++    if (m_dirty) {
++        --m_framesToRender;
++        if (m_framesToRender <= 0)
++            m_dirty = false;
++    }
++    return dirty || m_framesToRender > 0;
+ }
+ 
+ // This function is triggered in the context of the Main Thread
+@@ -881,20 +906,27 @@ QSGNode *Scene3DItem::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNode
+     // If the render aspect wasn't created yet, do so now
+     if (!managerNode->isInitialized()) {
+         auto *rw = QQuickRenderControl::renderWindowFor(window());
++
++        // When using a RenderControl, the AspectEngineDestroyer shouldn't release the root entity
++        // as it could be reused if render control was moved to another window
++        if (rw)
++            m_aspectEngineDestroyer->setReleaseRootEntity(false);
++
+         auto renderAspectPriv = static_cast<QRenderAspectPrivate*>(QRenderAspectPrivate::get(renderAspect));
+         renderAspectPriv->m_screen = (rw ? rw->screen() : window()->screen());
+         updateWindowSurface();
+         managerNode->init();
+         // Note: ChangeArbiter is only set after aspect was registered
+-
+-        // This allows Scene3DItem to know when it needs to re-render as a result of frontend nodes receiving a change.
+-        QObject::connect(renderAspectPriv->m_aspectManager->changeArbiter(), &Qt3DCore::QChangeArbiter::receivedChange,
+-                         this, [this] { m_dirty = true; }, Qt::DirectConnection);
+-
+-        // This allows Scene3DItem to know when it needs to re-render as a result of backend nodes receiving a change.
+-        // For e.g. nodes being created/destroyed.
+-        QObject::connect(renderAspectPriv->m_aspectManager->changeArbiter(), &Qt3DCore::QChangeArbiter::syncedChanges,
+-                         this, [this] { m_dirty = true; }, Qt::QueuedConnection);
++        QObject::connect(
++                renderAspectPriv->m_aspectManager->changeArbiter(),
++                &Qt3DCore::QChangeArbiter::receivedChange, this,
++                [this] {
++                    m_dirty = true;
++                    m_framesToRender = ms_framesNeededToFlushPipeline;
++                },
++                Qt::DirectConnection);
++        // Give the window a nudge to trigger an update.
++        QMetaObject::invokeMethod(window(), "requestUpdate", Qt::QueuedConnection);
+     }
+ 
+     const bool usesFBO = m_compositingMode == FBO;
+diff --git a/src/quick3d/imports/scene3d/scene3ditem_p.h b/src/quick3d/imports/scene3d/scene3ditem_p.h
+index 4a939aaab..3a6ca5007 100644
+--- a/src/quick3d/imports/scene3d/scene3ditem_p.h
++++ b/src/quick3d/imports/scene3d/scene3ditem_p.h
+@@ -169,6 +169,9 @@ private:
+     QOffscreenSurface *m_dummySurface;
+     QVector<Scene3DView *> m_views;
+     QMetaObject::Connection m_windowConnection;
++    qint8 m_framesToRender;
++
++    static const qint8 ms_framesNeededToFlushPipeline = 2;
+ };
+ 
+ } // Qt3DRender
+diff --git a/src/render/backend/abstractrenderer_p.h b/src/render/backend/abstractrenderer_p.h
+index 0dd24dcd8..ec08ab641 100644
+--- a/src/render/backend/abstractrenderer_p.h
++++ b/src/render/backend/abstractrenderer_p.h
+@@ -190,6 +190,15 @@ public:
+     // These commands are executed in a dedicated command thread
+     // More will be added later
+     virtual void loadShader(Shader *shader, Qt3DRender::Render::HShader shaderHandle) = 0;
++
++    // Runtime Cache for Generated Shader Graph
++    bool containsGeneratedShaderGraph(const QByteArray &key) const { return m_cachedGeneratedShaderGraphes.contains(key); };
++    QByteArray cachedGeneratedShaderGraph(const QByteArray &key) const { return m_cachedGeneratedShaderGraphes.value(key); };
++    void insertGeneratedShaderGraph(const QByteArray &key, const QByteArray shaderCode) { m_cachedGeneratedShaderGraphes.insert(key, shaderCode); }
++    void removeGeneratedShaderGraph(const QByteArray &key) { m_cachedGeneratedShaderGraphes.remove(key); };
++
++private:
++    QHash<QByteArray, QByteArray> m_cachedGeneratedShaderGraphes;
+ };
+ 
+ Q_DECLARE_OPERATORS_FOR_FLAGS(AbstractRenderer::BackendNodeDirtySet)
+diff --git a/src/render/backend/cameralens.cpp b/src/render/backend/cameralens.cpp
+index 9b8d7d710..743749210 100644
+--- a/src/render/backend/cameralens.cpp
++++ b/src/render/backend/cameralens.cpp
+@@ -133,12 +133,12 @@ void CameraLens::syncFromFrontEnd(const Qt3DCore::QNode *frontEnd, bool firstTim
+     const Matrix4x4 projectionMatrix(node->projectionMatrix());
+     if (projectionMatrix != m_projection) {
+         m_projection = projectionMatrix;
+-        markDirty(AbstractRenderer::AllDirty);
++        markDirty(AbstractRenderer::ParameterDirty);
+     }
+ 
+     if (!qFuzzyCompare(node->exposure(), m_exposure)) {
+         m_exposure = node->exposure();
+-        markDirty(AbstractRenderer::AllDirty);
++        markDirty(AbstractRenderer::ParameterDirty);
+     }
+ 
+     const QCameraLensPrivate *d = static_cast<const QCameraLensPrivate *>(QNodePrivate::get(node));
+diff --git a/src/render/backend/computecommand.cpp b/src/render/backend/computecommand.cpp
+index bc82291f0..b80f81eb2 100644
+--- a/src/render/backend/computecommand.cpp
++++ b/src/render/backend/computecommand.cpp
+@@ -81,7 +81,10 @@ void ComputeCommand::syncFromFrontEnd(const Qt3DCore::QNode *frontEnd, bool firs
+     if (!node)
+         return;
+ 
++    const bool wasEnabled = isEnabled();
+     BackendNode::syncFromFrontEnd(frontEnd, firstTime);
++    if (wasEnabled != isEnabled())
++        markDirty(AbstractRenderer::ComputeDirty);
+ 
+     if (m_workGroups[0] != node->workGroupX()) {
+         m_workGroups[0] = node->workGroupX();
+diff --git a/src/render/backend/managers_p.h b/src/render/backend/managers_p.h
+index a3d42d24a..864c168be 100644
+--- a/src/render/backend/managers_p.h
++++ b/src/render/backend/managers_p.h
+@@ -200,7 +200,7 @@ public:
+ class Q_3DRENDERSHARED_PRIVATE_EXPORT ShaderManager : public Qt3DCore::QResourceManager<
+         Shader,
+         Qt3DCore::QNodeId,
+-        Qt3DCore::NonLockingPolicy>
++        Qt3DCore::ObjectLevelLockingPolicy>
+ {
+ public:
+     ShaderManager() {}
+diff --git a/src/render/framegraph/qrenderpassfilter.cpp b/src/render/framegraph/qrenderpassfilter.cpp
+index 34462ebdf..f7fafb7d1 100644
+--- a/src/render/framegraph/qrenderpassfilter.cpp
++++ b/src/render/framegraph/qrenderpassfilter.cpp
+@@ -63,8 +63,8 @@ namespace Qt3DRender {
+     whose Qt3DRender::QFilterKey objects match the keys in QRenderPassFilter are
+     selected for rendering. If no QRenderPassFilter is present, then all QRenderPass
+     objects are selected for rendering. The parameters in the list can be used
+-    to set values for shader parameters. The parameters in QRenderPassFilter are
+-    overridden by parameters in QTechniqueFilter, QTechnique and QRenderPass.
++    to set values for shader parameters. The parameters in QRenderPassFilter
++    override parameters in QTechniqueFilter, QMaterial, QEffect, QTechnique and QRenderPass.
+ */
+ 
+ /*!
+@@ -79,7 +79,10 @@ namespace Qt3DRender {
+     objects are selected for drawing. When RenderPassFilter is present in the FrameGraph,
+     only the RenderPass objects, whose FilterKey objects match the keys
+     in RenderPassFilter are selected for rendering. If no RenderPassFilter is present,
+-    then all RenderPass objects are selected for rendering.
++    then all RenderPass objects are selected for rendering. RenderPassFilter
++    specifies a list of Parameter objects. The parameters in the list can be used
++    to set values for shader parameters. The parameters in RenderPassFilter
++    override parameters in TechniqueFilter, Material, Effect, Technique and RenderPass.
+ */
+ 
+ /*!
+diff --git a/src/render/framegraph/qtechniquefilter.cpp b/src/render/framegraph/qtechniquefilter.cpp
+index 5377e1297..2149d147e 100644
+--- a/src/render/framegraph/qtechniquefilter.cpp
++++ b/src/render/framegraph/qtechniquefilter.cpp
+@@ -65,8 +65,9 @@ QTechniqueFilterPrivate::QTechniqueFilterPrivate()
+     a list of Qt3DRender::QFilterKey objects and Qt3DRender::QParameter objects.
+     When QTechniqueFilter is present in the FrameGraph, only the techiques matching
+     the keys in the list are used for rendering. The parameters in the list can be used
+-    to set values for shader parameters. The parameters in QTechniqueFilter are
+-    overridden by parameters in QTechnique and QRenderPass.
++    to set values for shader parameters. The parameters in QTechniqueFilter
++    override parameters in QMaterial, QEffect, QTechnique and QRenderPass, but are overridden
++    by parameters in QRenderPassFilter.
+ */
+ 
+ /*!
+@@ -82,8 +83,9 @@ QTechniqueFilterPrivate::QTechniqueFilterPrivate()
+     a list of FilterKey objects and Parameter objects.
+     When TechniqueFilter is present in the FrameGraph, only the techiques matching
+     the keys in list are used for rendering. The parameters in the list can be used
+-    to set values for shader parameters. The parameters in TechniqueFilter are
+-    overridden by parameters in Technique and RenderPass.
++    to set values for shader parameters. The parameters in TechniqueFilter
++    override parameters in Material, Effect, Technique and RenderPass, but are overridden
++    by parameters in RenderPassFilter.
+ */
+ 
+ /*!
+diff --git a/src/render/frontend/qrenderaspect.cpp b/src/render/frontend/qrenderaspect.cpp
+index 4e8967e6e..bbf1013d9 100644
+--- a/src/render/frontend/qrenderaspect.cpp
++++ b/src/render/frontend/qrenderaspect.cpp
+@@ -322,7 +322,9 @@ QRenderAspectPrivate::QRenderAspectPrivate(QRenderAspect::RenderType type)
+     m_expandBoundingVolumeJob->addDependency(m_updateWorldBoundingVolumeJob);
+     m_updateLevelOfDetailJob->addDependency(m_expandBoundingVolumeJob);
+     m_pickBoundingVolumeJob->addDependency(m_expandBoundingVolumeJob);
++    m_pickBoundingVolumeJob->addDependency(m_updateEntityLayersJob);
+     m_rayCastingJob->addDependency(m_expandBoundingVolumeJob);
++    m_rayCastingJob->addDependency(m_updateEntityLayersJob);
+ }
+ 
+ /*! \internal */
+@@ -717,17 +719,20 @@ QVector<Qt3DCore::QAspectJobPtr> QRenderAspect::jobsToExecute(qint64 time)
+         if (entitiesEnabledDirty)
+             jobs.push_back(d->m_updateTreeEnabledJob);
+ 
+-        if (dirtyBitsForFrame & AbstractRenderer::TransformDirty) {
++        if (entitiesEnabledDirty ||
++            dirtyBitsForFrame & AbstractRenderer::TransformDirty) {
+             jobs.push_back(d->m_worldTransformJob);
+             jobs.push_back(d->m_updateWorldBoundingVolumeJob);
+         }
+ 
+-        if (dirtyBitsForFrame & AbstractRenderer::GeometryDirty ||
++        if (entitiesEnabledDirty ||
++            dirtyBitsForFrame & AbstractRenderer::GeometryDirty ||
+             dirtyBitsForFrame & AbstractRenderer::BuffersDirty) {
+             jobs.push_back(d->m_calculateBoundingVolumeJob);
+         }
+ 
+-        if (dirtyBitsForFrame & AbstractRenderer::GeometryDirty ||
++        if (entitiesEnabledDirty ||
++            dirtyBitsForFrame & AbstractRenderer::GeometryDirty ||
+             dirtyBitsForFrame & AbstractRenderer::TransformDirty) {
+             jobs.push_back(d->m_expandBoundingVolumeJob);
+         }
+diff --git a/src/render/geometry/geometryrenderer.cpp b/src/render/geometry/geometryrenderer.cpp
+index 881c0f66b..ff7ed308f 100644
+--- a/src/render/geometry/geometryrenderer.cpp
++++ b/src/render/geometry/geometryrenderer.cpp
+@@ -71,6 +71,7 @@ GeometryRenderer::GeometryRenderer()
+     , m_primitiveType(QGeometryRenderer::Triangles)
+     , m_dirty(false)
+     , m_manager(nullptr)
++    , m_sortIndex(-1.f)
+ {
+ }
+ 
+@@ -96,6 +97,7 @@ void GeometryRenderer::cleanup()
+     m_geometryFactory.reset();
+     qDeleteAll(m_triangleVolumes);
+     m_triangleVolumes.clear();
++    m_sortIndex = -1.f;
+ }
+ 
+ void GeometryRenderer::setManager(GeometryRendererManager *manager)
+@@ -151,6 +153,9 @@ void GeometryRenderer::syncFromFrontEnd(const QNode *frontEnd, bool firstTime)
+         }
+     }
+ 
++    const auto dnode = static_cast<const QGeometryRendererPrivate*>(QGeometryRendererPrivate::get(node));
++    m_sortIndex = dnode->m_sortIndex;
++
+     markDirty(AbstractRenderer::GeometryDirty);
+ }
+ 
+diff --git a/src/render/geometry/geometryrenderer_p.h b/src/render/geometry/geometryrenderer_p.h
+index a38233d6c..411845819 100644
+--- a/src/render/geometry/geometryrenderer_p.h
++++ b/src/render/geometry/geometryrenderer_p.h
+@@ -104,6 +104,8 @@ public:
+     // Pick volumes job
+     QVector<RayCasting::QBoundingVolume *> triangleData() const;
+ 
++    float sortIndex() const { return m_sortIndex; }
++
+ private:
+     Qt3DCore::QNodeId m_geometryId;
+     int m_instanceCount;
+@@ -120,6 +122,7 @@ private:
+     QGeometryFactoryPtr m_geometryFactory;
+     GeometryRendererManager *m_manager;
+     QVector<RayCasting::QBoundingVolume *> m_triangleVolumes;
++    float m_sortIndex;
+ };
+ 
+ class GeometryRendererFunctor : public Qt3DCore::QBackendNodeMapper
+diff --git a/src/render/geometry/qgeometryrenderer.cpp b/src/render/geometry/qgeometryrenderer.cpp
+index 8720a5c00..7abbe8db8 100644
+--- a/src/render/geometry/qgeometryrenderer.cpp
++++ b/src/render/geometry/qgeometryrenderer.cpp
+@@ -48,6 +48,28 @@ using namespace Qt3DCore;
+ 
+ namespace Qt3DRender {
+ 
++/*
++    \internal
++
++    sortIndex property: overrides the sorting index when depth sorting is enabled.
++
++    If depth sorting is enabled on the frame graph, the renderer will sort
++    objects based on how far the center of the bounding volume is from
++    the camera and render objects from the furthest to the closest.
++
++    This property can be used to override the depth index and precisely
++    control the order in which objects are rendered. This is useful when
++    all objects are at the same physical distance from the camera.
++
++    The actual values are not significant, only that they define an order
++    to sort the objects. These are sorted such as the object with the
++    smallest value is drawn first, then the second smallest, and so on.
++
++    \note Setting this to -1.f will disable the explicit sorting for this
++    entity and revert to using the distance from the center of the bounding
++    volume.
++*/
++
+ QGeometryRendererPrivate::QGeometryRendererPrivate()
+     : QComponentPrivate()
+     , m_instanceCount(1)
+@@ -61,6 +83,7 @@ QGeometryRendererPrivate::QGeometryRendererPrivate()
+     , m_primitiveRestart(false)
+     , m_geometry(nullptr)
+     , m_primitiveType(QGeometryRenderer::Triangles)
++    , m_sortIndex(-1.f)
+ {
+ }
+ 
+@@ -194,7 +217,6 @@ QGeometryRendererPrivate::~QGeometryRendererPrivate()
+     \sa Qt3DRender::QGeometryRenderer::PrimitiveType
+  */
+ 
+-
+ /*!
+     Constructs a new QGeometryRenderer with \a parent.
+  */
+diff --git a/src/render/geometry/qgeometryrenderer_p.h b/src/render/geometry/qgeometryrenderer_p.h
+index 32ca334e3..323ab786c 100644
+--- a/src/render/geometry/qgeometryrenderer_p.h
++++ b/src/render/geometry/qgeometryrenderer_p.h
+@@ -82,6 +82,7 @@ public:
+     QGeometry *m_geometry;
+     QGeometryRenderer::PrimitiveType m_primitiveType;
+     QGeometryFactoryPtr m_geometryFactory;
++    float m_sortIndex;
+ };
+ 
+ struct QGeometryRendererData
+diff --git a/src/render/io/qsceneloader.cpp b/src/render/io/qsceneloader.cpp
+index 2d53702f6..ce2aa034e 100644
+--- a/src/render/io/qsceneloader.cpp
++++ b/src/render/io/qsceneloader.cpp
+@@ -343,6 +343,8 @@ QComponent *QSceneLoader::component(const QString &entityName,
+                                     QSceneLoader::ComponentType componentType) const
+ {
+     QEntity *e = entity(entityName);
++    if (!e)
++        return nullptr;
+     const QComponentVector components = e->components();
+     for (auto component : components) {
+         switch (componentType) {
+diff --git a/src/render/jobs/filterlayerentityjob.cpp b/src/render/jobs/filterlayerentityjob.cpp
+index ae3cced59..401bbc148 100644
+--- a/src/render/jobs/filterlayerentityjob.cpp
++++ b/src/render/jobs/filterlayerentityjob.cpp
+@@ -75,6 +75,33 @@ void FilterLayerEntityJob::run()
+     std::sort(m_filteredEntities.begin(), m_filteredEntities.end());
+ }
+ 
++void FilterLayerEntityJob::filterEntityAgainstLayers(Entity *entity,
++                                                     const Qt3DCore::QNodeIdVector &layerIds,
++                                                     const QLayerFilter::FilterMode filterMode)
++{
++    // Perform filtering
++    switch (filterMode) {
++    case QLayerFilter::AcceptAnyMatchingLayers: {
++        filterAcceptAnyMatchingLayers(entity, layerIds);
++        break;
++    }
++    case QLayerFilter::AcceptAllMatchingLayers: {
++        filterAcceptAllMatchingLayers(entity, layerIds);
++        break;
++    }
++    case QLayerFilter::DiscardAnyMatchingLayers: {
++        filterDiscardAnyMatchingLayers(entity, layerIds);
++        break;
++    }
++    case QLayerFilter::DiscardAllMatchingLayers: {
++        filterDiscardAllMatchingLayers(entity, layerIds);
++        break;
++    }
++    default:
++        Q_UNREACHABLE();
++    }
++}
++
+ // We accept the entity if it contains any of the layers that are in the layer filter
+ void FilterLayerEntityJob::filterAcceptAnyMatchingLayers(Entity *entity,
+                                                          const Qt3DCore::QNodeIdVector &layerIds)
+@@ -181,28 +208,8 @@ void FilterLayerEntityJob::filterLayerAndEntity()
+         const QLayerFilter::FilterMode filterMode = layerFilter->filterMode();
+ 
+         // Perform filtering
+-        for (Entity *entity : entitiesToFilter) {
+-            switch (filterMode) {
+-            case QLayerFilter::AcceptAnyMatchingLayers: {
+-                filterAcceptAnyMatchingLayers(entity, layerIds);
+-                break;
+-            }
+-            case QLayerFilter::AcceptAllMatchingLayers: {
+-                filterAcceptAllMatchingLayers(entity, layerIds);
+-                break;
+-            }
+-            case QLayerFilter::DiscardAnyMatchingLayers: {
+-                filterDiscardAnyMatchingLayers(entity, layerIds);
+-                break;
+-            }
+-            case QLayerFilter::DiscardAllMatchingLayers: {
+-                filterDiscardAllMatchingLayers(entity, layerIds);
+-                break;
+-            }
+-            default:
+-                Q_UNREACHABLE();
+-            }
+-        }
++        for (Entity *entity : entitiesToFilter)
++            filterEntityAgainstLayers(entity, layerIds, filterMode);
+ 
+         // Entities to filter for the next frame are the filtered result of the
+         // current LayerFilter
+diff --git a/src/render/jobs/filterlayerentityjob_p.h b/src/render/jobs/filterlayerentityjob_p.h
+index 33023775f..6e8636f28 100644
+--- a/src/render/jobs/filterlayerentityjob_p.h
++++ b/src/render/jobs/filterlayerentityjob_p.h
+@@ -80,6 +80,7 @@ public:
+     // QAspectJob interface
+     void run() final;
+ 
++    void filterEntityAgainstLayers(Entity *entity, const Qt3DCore::QNodeIdVector &layerIds, const QLayerFilter::FilterMode filterMode);
+     void filterAcceptAnyMatchingLayers(Entity *entity, const Qt3DCore::QNodeIdVector &layerIds);
+     void filterAcceptAllMatchingLayers(Entity *entity, const Qt3DCore::QNodeIdVector &layerIds);
+     void filterDiscardAnyMatchingLayers(Entity *entity, const Qt3DCore::QNodeIdVector &layerIds);
+diff --git a/src/render/jobs/pickboundingvolumejob.cpp b/src/render/jobs/pickboundingvolumejob.cpp
+index eebacc681..7519cbd9c 100644
+--- a/src/render/jobs/pickboundingvolumejob.cpp
++++ b/src/render/jobs/pickboundingvolumejob.cpp
+@@ -330,6 +330,7 @@ bool PickBoundingVolumeJob::runHelper()
+             }
+ 
+             PickingUtils::HierarchicalEntityPicker entityPicker(ray);
++            entityPicker.setLayerFilterIds(vca.layersFilters);
+             if (entityPicker.collectHits(m_manager, m_node)) {
+                 if (trianglePickingRequested) {
+                     PickingUtils::TriangleCollisionGathererFunctor gathererFunctor;
+@@ -472,6 +473,7 @@ void PickBoundingVolumeJob::dispatchPickEvents(const QMouseEvent &event,
+                 case QEvent::MouseButtonPress: {
+                     // Store pressed object handle
+                     m_currentPicker = objectPickerHandle;
++                    m_currentViewport = viewportNodeId;
+                     // Send pressed event to m_currentPicker
+                     d->dispatches.push_back({objectPicker->peerId(), event.type(), pickEvent, viewportNodeId});
+                     objectPicker->setPressed(true);
+@@ -489,6 +491,7 @@ void PickBoundingVolumeJob::dispatchPickEvents(const QMouseEvent &event,
+                                                  PickBoundingVolumeJobPrivate::MouseButtonClick,
+                                                  pickEvent, viewportNodeId});
+                         m_currentPicker = HObjectPicker();
++                        m_currentViewport = {};
+                     }
+                     break;
+                 }
+@@ -533,8 +536,9 @@ void PickBoundingVolumeJob::dispatchPickEvents(const QMouseEvent &event,
+         switch (event.type()) {
+         case QEvent::MouseButtonRelease: {
+             // Send release event to m_currentPicker
+-            if (lastCurrentPicker != nullptr) {
++            if (lastCurrentPicker != nullptr && m_currentViewport == viewportNodeId) {
+                 m_currentPicker = HObjectPicker();
++                m_currentViewport = {};
+                 QPickEventPtr pickEvent(new QPickEvent);
+                 lastCurrentPicker->setPressed(false);
+                 d->dispatches.push_back({lastCurrentPicker->peerId(), event.type(), pickEvent, viewportNodeId});
+diff --git a/src/render/jobs/pickboundingvolumejob_p.h b/src/render/jobs/pickboundingvolumejob_p.h
+index 4f2c4340e..286bbb051 100644
+--- a/src/render/jobs/pickboundingvolumejob_p.h
++++ b/src/render/jobs/pickboundingvolumejob_p.h
+@@ -112,6 +112,7 @@ private:
+     bool m_pickersDirty;
+     bool m_oneHoverAtLeast;
+     HObjectPicker m_currentPicker;
++    Qt3DCore::QNodeId m_currentViewport;
+     QVector<HObjectPicker> m_hoveredPickers;
+     QVector<HObjectPicker> m_hoveredPickersToClear;
+ };
+diff --git a/src/render/jobs/pickboundingvolumeutils.cpp b/src/render/jobs/pickboundingvolumeutils.cpp
+index 1d22e8645..f4c5cc094 100644
+--- a/src/render/jobs/pickboundingvolumeutils.cpp
++++ b/src/render/jobs/pickboundingvolumeutils.cpp
+@@ -52,6 +52,9 @@
+ #include <Qt3DRender/private/segmentsvisitor_p.h>
+ #include <Qt3DRender/private/pointsvisitor_p.h>
+ #include <Qt3DRender/private/layer_p.h>
++#include <Qt3DRender/private/layerfilternode_p.h>
++#include <Qt3DRender/private/rendersettings_p.h>
++#include <Qt3DRender/private/filterlayerentityjob_p.h>
+ 
+ #include <vector>
+ #include <algorithm>
+@@ -105,6 +108,11 @@ ViewportCameraAreaDetails ViewportCameraAreaGatherer::gatherUpViewportCameraArea
+                 // prevent picking in the presence of a NoPicking node
+                 return {};
+             }
++            case FrameGraphNode::LayerFilter: {
++                auto fnode = static_cast<const LayerFilterNode *>(node);
++                vca.layersFilters.push_back(fnode->peerId());
++                break;
++            }
+             default:
+                 break;
+             }
+@@ -139,7 +147,8 @@ bool ViewportCameraAreaGatherer::isUnique(const QVector<ViewportCameraAreaDetail
+         if (vca.cameraId == listItem.cameraId &&
+                 vca.viewport == listItem.viewport &&
+                 vca.surface == listItem.surface &&
+-                vca.area == listItem.area)
++                vca.area == listItem.area &&
++                vca.layersFilters == listItem.layersFilters)
+             return false;
+     }
+     return true;
+@@ -700,16 +709,19 @@ HitList PointCollisionGathererFunctor::pick(const Entity *entity) const
+ HierarchicalEntityPicker::HierarchicalEntityPicker(const QRay3D &ray, bool requireObjectPicker)
+     : m_ray(ray)
+     , m_objectPickersRequired(requireObjectPicker)
+-    , m_filterMode(QAbstractRayCaster::AcceptAnyMatchingLayers)
+ {
++}
+ 
++void HierarchicalEntityPicker::setLayerFilterIds(const Qt3DCore::QNodeIdVector &layerFilterIds)
++{
++    m_layerFilterIds = layerFilterIds;
+ }
+ 
+-void HierarchicalEntityPicker::setFilterLayers(const Qt3DCore::QNodeIdVector &layerIds, QAbstractRayCaster::FilterMode mode)
++void HierarchicalEntityPicker::setLayerIds(const Qt3DCore::QNodeIdVector &layerIds,
++                                           QAbstractRayCaster::FilterMode mode)
+ {
+-    m_filterMode = mode;
+     m_layerIds = layerIds;
+-    std::sort(m_layerIds.begin(), m_layerIds.end());
++    m_layerFilterMode = mode;
+ }
+ 
+ bool HierarchicalEntityPicker::collectHits(NodeManagers *manager, Entity *root)
+@@ -722,60 +734,37 @@ bool HierarchicalEntityPicker::collectHits(NodeManagers *manager, Entity *root)
+     struct EntityData {
+         Entity* entity;
+         bool hasObjectPicker;
+-        Qt3DCore::QNodeIdVector recursiveLayers;
+         int priority;
+     };
+     std::vector<EntityData> worklist;
+-    worklist.push_back({root, !root->componentHandle<ObjectPicker>().isNull(), {}, 0});
+-
+-    LayerManager *layerManager = manager->layerManager();
++    worklist.push_back({root, !root->componentHandle<ObjectPicker>().isNull(), 0});
++
++    // Record all entities that satisfy layerFiltering. We can then check against
++    // that to see if a picked Entity also satisfies the layer filtering
++
++    // Note: PickBoundingVolumeJob filters against LayerFilter nodes (FG) whereas
++    // the RayCastingJob filters only against a set of Layers and a filter Mode
++    const bool hasLayerFilters = m_layerFilterIds.size() > 0;
++    const bool hasLayers = m_layerIds.size() > 0;
++    const bool hasLayerFiltering = hasLayerFilters || hasLayers;
++    QVector<Entity *> layerFilterEntities;
++    FilterLayerEntityJob layerFilterJob;
++    layerFilterJob.setManager(manager);
++
++    if (hasLayerFilters) {
++        // Note: we expect UpdateEntityLayersJob was called beforehand to handle layer recursivness
++        // Filtering against LayerFilters (PickBoundingVolumeJob)
++        if (m_layerFilterIds.size()) {
++            layerFilterJob.setLayerFilters(m_layerFilterIds);
++            layerFilterJob.run();
++            layerFilterEntities = layerFilterJob.filteredEntities();
++        }
++    }
+ 
+     while (!worklist.empty()) {
+         EntityData current = worklist.back();
+         worklist.pop_back();
+ 
+-        bool accepted = true;
+-        if (m_layerIds.size()) {
+-            // TODO investigate reusing logic from LayerFilter job
+-            Qt3DCore::QNodeIdVector filterLayers = current.recursiveLayers + current.entity->componentsUuid<Layer>();
+-
+-            // remove disabled layers
+-            filterLayers.erase(std::remove_if(filterLayers.begin(), filterLayers.end(),
+-                                              [layerManager](const Qt3DCore::QNodeId layerId) {
+-                Layer *layer = layerManager->lookupResource(layerId);
+-                return !layer || !layer->isEnabled();
+-            }), filterLayers.end());
+-
+-            std::sort(filterLayers.begin(), filterLayers.end());
+-
+-            Qt3DCore::QNodeIdVector commonIds;
+-            std::set_intersection(m_layerIds.cbegin(), m_layerIds.cend(),
+-                                  filterLayers.cbegin(), filterLayers.cend(),
+-                                  std::back_inserter(commonIds));
+-
+-            switch (m_filterMode) {
+-            case QAbstractRayCaster::AcceptAnyMatchingLayers: {
+-                accepted = !commonIds.empty();
+-                break;
+-            }
+-            case QAbstractRayCaster::AcceptAllMatchingLayers: {
+-                accepted = commonIds == m_layerIds;
+-                break;
+-            }
+-            case QAbstractRayCaster::DiscardAnyMatchingLayers: {
+-                accepted = commonIds.empty();
+-                break;
+-            }
+-            case QAbstractRayCaster::DiscardAllMatchingLayers: {
+-                accepted = !(commonIds == m_layerIds);
+-                break;
+-            }
+-            default:
+-                Q_UNREACHABLE();
+-                break;
+-            }
+-        }
+-
+         // first pick entry sub-scene-graph
+         QCollisionQueryResult::Hit queryResult =
+                 rayCasting.query(m_ray, current.entity->worldBoundingVolumeWithChildren());
+@@ -784,21 +773,27 @@ bool HierarchicalEntityPicker::collectHits(NodeManagers *manager, Entity *root)
+ 
+         // if we get a hit, we check again for this specific entity
+         queryResult = rayCasting.query(m_ray, current.entity->worldBoundingVolume());
+-        if (accepted && queryResult.m_distance >= 0.f && (current.hasObjectPicker || !m_objectPickersRequired)) {
++
++        // Check Entity is in selected Layers if we have LayerIds or LayerFilterIds
++        // Note: it's not because a parent doesn't satisfy the layerFiltering that a child might not.
++        // Therefore we need to keep traversing children in all cases
++
++        // Are we filtering against layerIds (RayCastingJob)
++        if (hasLayers) {
++            // QLayerFilter::FilterMode and QAbstractRayCaster::FilterMode are the same
++            layerFilterJob.filterEntityAgainstLayers(current.entity, m_layerIds, static_cast<QLayerFilter::FilterMode>(m_layerFilterMode));
++            layerFilterEntities = layerFilterJob.filteredEntities();
++        }
++
++        const bool isInLayers = !hasLayerFiltering || layerFilterEntities.contains(current.entity);
++
++        if (isInLayers && queryResult.m_distance >= 0.f && (current.hasObjectPicker || !m_objectPickersRequired)) {
+             m_entities.push_back(current.entity);
+             m_hits.push_back(queryResult);
+             // Record entry for entity/priority
+             m_entityToPriorityTable.insert(current.entity->peerId(), current.priority);
+         }
+ 
+-        Qt3DCore::QNodeIdVector recursiveLayers;
+-        const Qt3DCore::QNodeIdVector entityLayers = current.entity->componentsUuid<Layer>();
+-        for (const Qt3DCore::QNodeId layerId : entityLayers) {
+-            Layer *layer = layerManager->lookupResource(layerId);
+-            if (layer->recursive())
+-                recursiveLayers << layerId;
+-        }
+-
+         // and pick children
+         const auto childrenHandles = current.entity->childrenHandles();
+         for (const HEntity &handle : childrenHandles) {
+@@ -806,7 +801,6 @@ bool HierarchicalEntityPicker::collectHits(NodeManagers *manager, Entity *root)
+             if (child) {
+                 ObjectPicker *childPicker = child->renderComponent<ObjectPicker>();
+                 worklist.push_back({child, current.hasObjectPicker || childPicker,
+-                                    current.recursiveLayers + recursiveLayers,
+                                     (childPicker ? childPicker->priority() : current.priority)});
+             }
+         }
+diff --git a/src/render/jobs/pickboundingvolumeutils_p.h b/src/render/jobs/pickboundingvolumeutils_p.h
+index fa3e701c2..1fe81fc46 100644
+--- a/src/render/jobs/pickboundingvolumeutils_p.h
++++ b/src/render/jobs/pickboundingvolumeutils_p.h
+@@ -83,8 +83,9 @@ struct Q_AUTOTEST_EXPORT ViewportCameraAreaDetails
+     QRectF viewport;
+     QSize area;
+     QSurface *surface = nullptr;
++    Qt3DCore::QNodeIdVector layersFilters;
+ };
+-QT3D_DECLARE_TYPEINFO_3(Qt3DRender, Render, PickingUtils, ViewportCameraAreaDetails, Q_PRIMITIVE_TYPE)
++QT3D_DECLARE_TYPEINFO_3(Qt3DRender, Render, PickingUtils, ViewportCameraAreaDetails, Q_COMPLEX_TYPE)
+ 
+ class Q_AUTOTEST_EXPORT ViewportCameraAreaGatherer
+ {
+@@ -108,7 +109,8 @@ class Q_AUTOTEST_EXPORT HierarchicalEntityPicker
+ public:
+     explicit HierarchicalEntityPicker(const RayCasting::QRay3D &ray, bool requireObjectPicker = true);
+ 
+-    void setFilterLayers(const Qt3DCore::QNodeIdVector &layerIds, QAbstractRayCaster::FilterMode mode);
++    void setLayerFilterIds(const Qt3DCore::QNodeIdVector &layerFilterIds);
++    void setLayerIds(const Qt3DCore::QNodeIdVector &layerIds, QAbstractRayCaster::FilterMode mode);
+ 
+     bool collectHits(NodeManagers *manager, Entity *root);
+     inline HitList hits() const { return m_hits; }
+@@ -120,8 +122,9 @@ private:
+     HitList m_hits;
+     QVector<Entity *> m_entities;
+     bool m_objectPickersRequired;
++    Qt3DCore::QNodeIdVector m_layerFilterIds;
+     Qt3DCore::QNodeIdVector m_layerIds;
+-    QAbstractRayCaster::FilterMode m_filterMode;
++    QAbstractRayCaster::FilterMode m_layerFilterMode = QAbstractRayCaster::AcceptAnyMatchingLayers;
+     QHash<Qt3DCore::QNodeId, int> m_entityToPriorityTable;
+ };
+ 
+diff --git a/src/render/jobs/raycastingjob.cpp b/src/render/jobs/raycastingjob.cpp
+index b7d4c4b7c..56f681a2c 100644
+--- a/src/render/jobs/raycastingjob.cpp
++++ b/src/render/jobs/raycastingjob.cpp
+@@ -202,7 +202,7 @@ bool RayCastingJob::runHelper()
+         for (const QRay3D &ray: qAsConst(rays)) {
+             PickingUtils::HitList sphereHits;
+             PickingUtils::HierarchicalEntityPicker entityPicker(ray, false);
+-            entityPicker.setFilterLayers(pair.second->layerIds(), pair.second->filterMode());
++            entityPicker.setLayerIds(pair.second->layerIds(), pair.second->filterMode());
+             if (entityPicker.collectHits(m_manager, m_node)) {
+                 if (trianglePickingRequested) {
+                     PickingUtils::TriangleCollisionGathererFunctor gathererFunctor;
+diff --git a/src/render/materialsystem/qeffect.cpp b/src/render/materialsystem/qeffect.cpp
+index 9f4b3db94..01d887792 100644
+--- a/src/render/materialsystem/qeffect.cpp
++++ b/src/render/materialsystem/qeffect.cpp
+@@ -91,8 +91,9 @@ QEffectPrivate::QEffectPrivate()
+     effect->addTechnique(gl3Technique);
+     \endcode
+ 
+-    A QParameter defined on an Effect is overridden by a QParameter (of the same
+-    name) defined in a QMaterial, QTechniqueFilter, QRenderPassFilter.
++    A QParameter defined on a QEffect overrides parameter (of the same
++    name) defined in QTechnique and QRenderPass, but are overridden by parameter in
++    QRenderPassFilter, QTechniqueFilter and QMaterial.
+ 
+     \sa QMaterial, QTechnique, QParameter
+ */
+@@ -110,8 +111,9 @@ QEffectPrivate::QEffectPrivate()
+ 
+     An Effect instance should be shared among several Material instances when possible.
+ 
+-    A Parameter defined on an Effect is overridden by a QParameter (of the same
+-    name) defined in a Material, TechniqueFilter, RenderPassFilter.
++    A Parameter defined on a Effect overrides parameter (of the same
++    name) defined in Technique and RenderPass, but are overridden by parameter in
++    RenderPassFilter, TechniqueFilter and Material.
+ 
+     \note Effect node can not be disabled.
+ 
+diff --git a/src/render/materialsystem/qmaterial.cpp b/src/render/materialsystem/qmaterial.cpp
+index a1bec183b..f41dcacde 100644
+--- a/src/render/materialsystem/qmaterial.cpp
++++ b/src/render/materialsystem/qmaterial.cpp
+@@ -65,8 +65,9 @@
+     techniques, passes and shaders once while allowing to specify the material
+     by adding Parameter instances.
+ 
+-    A Parameter defined on a Material is overridden by a Parameter (of the same
+-    name) defined in a TechniqueFilter or a RenderPassFilter.
++    A Parameter defined on a Material overrides parameter (of the same
++    name) defined in a Effect, Technique and RenderPass, but are overridden by parameters in
++    RenderPassFilter and TechniqueFilter.
+ 
+     \code
+     Effect {
+@@ -133,8 +134,9 @@
+     techniques, passes and shaders once while allowing to specify the material
+     by adding QParameter instances.
+ 
+-    A QParameter defined on a QMaterial is overridden by a QParameter (of the same
+-    name) defined in a QTechniqueFilter or a QRenderPassFilter.
++    A QParameter defined on a QMaterial overrides parameter (of the same
++    name) defined in a QEffect, QTechnique and QRenderPass, but are overridden by parameter in
++    QRenderPassFilter and QTechniqueFilter.
+ 
+     \code
+     QMaterial *material1 = new QMaterial();
+diff --git a/src/render/materialsystem/qshaderprogrambuilder.cpp b/src/render/materialsystem/qshaderprogrambuilder.cpp
+index 7f98fbf5e..5530db2ee 100644
+--- a/src/render/materialsystem/qshaderprogrambuilder.cpp
++++ b/src/render/materialsystem/qshaderprogrambuilder.cpp
+@@ -56,6 +56,22 @@
+ 
+     A shader program builder consists of several different shader graphs
+     used to generate shader code.
++
++    A cache of generated shader code is maintained. Generated shaders are by
++    defaults saved in
++    QStandardPaths::writableLocation(QStandardPaths::TempLocation)). This path
++    can be overridden by setting environment variable QT3D_WRITABLE_CACHE_PATH
++    to a valid writable path.
++
++    The use of the cache can be disabled by setting environment variable
++    QT3D_DISABLE_SHADER_CACHE.
++
++    In most cases, changes made to a graph are detected by Qt 3D and a new
++    cache entry will be generated. One case were this will not happen is when
++    code snippets included by a graphs are changed. To work around that,
++    clearing the cache directory or setting environment variable
++    QT3D_REBUILD_SHADER_CACHE can be used to force shader code to be generated
++    again.
+ */
+ 
+ /*!
+@@ -67,6 +83,22 @@
+ 
+     A shader program builder consists of several different shader graphs
+     used to generate shader code.
++
++    A cache of generated shader code is maintained. Generated shaders are by
++    defaults saved in
++    QStandardPaths::writableLocation(QStandardPaths::TempLocation)). This path
++    can be overridden by setting environment variable QT3D_WRITABLE_CACHE_PATH
++    to a valid writable path.
++
++    The use of the cache can be disabled by setting environment variable
++    QT3D_DISABLE_SHADER_CACHE.
++
++    In most cases, changes made to a graph are detected by Qt 3D and a new
++    cache entry will be generated. One case were this will not happen is when
++    code snippets included by a graphs are changed. To work around that,
++    clearing the cache directory or setting environment variable
++    QT3D_REBUILD_SHADER_CACHE can be used to force shader code to be generated
++    again.
+ */
+ 
+ QT_BEGIN_NAMESPACE
+diff --git a/src/render/materialsystem/qtechnique.cpp b/src/render/materialsystem/qtechnique.cpp
+index 0e1787938..caa8b0fb7 100644
+--- a/src/render/materialsystem/qtechnique.cpp
++++ b/src/render/materialsystem/qtechnique.cpp
+@@ -69,9 +69,9 @@ QTechniquePrivate::~QTechniquePrivate()
+     Parameter objects and a GraphicsApiFilter, which together define a
+     rendering technique the given graphics API can render. The filter keys are
+     used by TechniqueFilter to select specific techniques at specific parts of
+-    the FrameGraph. If two Parameter instances with the same name are specified
+-    in a Technique and a RenderPass, the one in Technique overrides the one
+-    used in the RenderPass.
++    the FrameGraph. A Parameter defined on a Technique overrides parameter
++    (of the same name) defined in RenderPass, but are overridden by
++    parameter in RenderPassFilter, TechniqueFilter, Material and Effect.
+ 
+     When creating an Effect that targets several versions of a graphics API, it
+     is useful to create several Technique nodes each with a graphicsApiFilter
+@@ -136,9 +136,9 @@ QTechniquePrivate::~QTechniquePrivate()
+     a Qt3DRender::QGraphicsApiFilter, which together define a rendering
+     technique the given graphics API can render. The filter keys are used by
+     Qt3DRender::QTechniqueFilter to select specific techniques at specific
+-    parts of the FrameGraph. If two QParameter instances with the same name are
+-    specified in a QTechnique and a QRenderPass, the one in Technique overrides
+-    the one used in the QRenderPass.
++    parts of the FrameGraph. A QParameter defined on a QTechnique overrides parameter
++    (of the same name) defined in QRenderPass, but are overridden by
++    parameter in QRenderPassFilter, QTechniqueFilter, QMaterial and QEffect.
+ 
+     When creating an QEffect that targets several versions of a graphics API,
+     it is useful to create several QTechnique nodes each with a
+diff --git a/src/render/materialsystem/shaderbuilder.cpp b/src/render/materialsystem/shaderbuilder.cpp
+index b168756c9..30a1938f3 100644
+--- a/src/render/materialsystem/shaderbuilder.cpp
++++ b/src/render/materialsystem/shaderbuilder.cpp
+@@ -50,10 +50,15 @@
+ #include <Qt3DRender/private/qshadergraphloader_p.h>
+ #include <Qt3DRender/private/qshadergenerator_p.h>
+ #include <Qt3DRender/private/qshadernodesloader_p.h>
++#include <Qt3DRender/private/renderlogging_p.h>
+ 
+ #include <QFile>
+ #include <QFileInfo>
+ #include <QUrl>
++#include <QCryptographicHash>
++#include <QDateTime>
++#include <QStandardPaths>
++#include <QDir>
+ 
+ static void initResources()
+ {
+@@ -222,6 +227,57 @@ void ShaderBuilder::generateCode(QShaderProgram::ShaderType type)
+         return;
+     }
+ 
++    auto updateShaderCodeAndClearDirty = [&] (const QByteArray &shaderCode) {
++        m_codes.insert(type, shaderCode);
++        m_dirtyTypes.remove(type);
++        m_pendingUpdates.push_back({ peerId(),
++                                     type,
++                                     m_codes.value(type) });
++    };
++
++    const QByteArray cacheKey = hashKeyForShaderGraph(type);
++    const bool forceRegenerate = qEnvironmentVariableIsSet("QT3D_REBUILD_SHADER_CACHE");
++    const bool useCache = !qEnvironmentVariableIsSet("QT3D_DISABLE_SHADER_CACHE") && !forceRegenerate;
++    const QByteArray userProvidedPath = qgetenv("QT3D_WRITABLE_CACHE_PATH");
++    const QString cachedFilterPath = QDir(userProvidedPath.isEmpty() ?
++                                              QStandardPaths::writableLocation(QStandardPaths::TempLocation)
++                                            : QString::fromUtf8(userProvidedPath)).absoluteFilePath(QString::fromUtf8(cacheKey) + QLatin1String(".qt3d"));
++    QFile cachedShaderFile(cachedFilterPath);
++
++    // Check our runtime cache to see if we have already loaded the shader previously
++    if (useCache) {
++        // We check if we already have generated a shader previously for the
++        // given type, the given graph, the given API and the current set of layer
++        // If that's the case it's faster to load the pre generated shader file
++
++        if (m_renderer && m_renderer->containsGeneratedShaderGraph(cacheKey)) {
++            qCDebug(ShaderCache) << "Using runtime cache for shader graph with key" << cacheKey;
++            updateShaderCodeAndClearDirty(m_renderer->cachedGeneratedShaderGraph(cacheKey));
++            return;
++        }
++
++        // else check if a cachedShader file exists
++        if (cachedShaderFile.exists()) {
++            if (!cachedShaderFile.open(QFile::ReadOnly)) {
++                qCWarning(ShaderCache) << "Couldn't open cached shader file:" << graphPath;
++                // Too bad, we have to generate the shader below
++            } else {
++                // Use cached shader
++                qCDebug(ShaderCache) << "Using cached shader file" << cachedFilterPath;
++                const QByteArray shaderCode = cachedShaderFile.readAll();
++                updateShaderCodeAndClearDirty(shaderCode);
++
++                // Record to runtime cache
++                if (m_renderer) {
++                    qCDebug(ShaderCache) << "Insert shader " << cacheKey << "into runtime cache";
++                    m_renderer->insertGeneratedShaderGraph(cacheKey, shaderCode);
++                }
++                return;
++            }
++        }
++    }
++
++    // Generate Shader and Cache the result for subsequent uses
+     auto graphLoader = QShaderGraphLoader();
+     graphLoader.setPrototypes(qt3dGlobalShaderPrototypes->prototypes());
+     graphLoader.setDevice(&file);
+@@ -249,12 +305,24 @@ void ShaderBuilder::generateCode(QShaderProgram::ShaderType type)
+ 
+     const auto code = generator.createShaderCode(m_enabledLayers);
+     const auto deincludified = QShaderProgramPrivate::deincludify(code, graphPath + QStringLiteral(".glsl"));
+-    m_codes.insert(type, deincludified);
+-    m_dirtyTypes.remove(type);
+ 
+-    m_pendingUpdates.push_back({ peerId(),
+-                                 type,
+-                                 m_codes.value(type) });
++    updateShaderCodeAndClearDirty(deincludified);
++
++    // Record to runtime cache
++    if (useCache || forceRegenerate) {
++        if (m_renderer) {
++            qCDebug(ShaderCache) << "Insert shader " << cacheKey << "into runtime cache";
++            m_renderer->insertGeneratedShaderGraph(cacheKey, deincludified);
++        }
++
++        // Record to file cache
++        if (cachedShaderFile.open(QFile::WriteOnly)) {
++            cachedShaderFile.write(deincludified);
++            qCDebug(ShaderCache) << "Saving cached shader file" << cachedFilterPath;
++        } else {
++            qCWarning(ShaderCache) << "Unable to write cached shader file";
++        }
++    }
+ }
+ 
+ void ShaderBuilder::syncFromFrontEnd(const QNode *frontEnd, bool firstTime)
+@@ -299,6 +367,43 @@ void ShaderBuilder::syncFromFrontEnd(const QNode *frontEnd, bool firstTime)
+     }
+ }
+ 
++QByteArray ShaderBuilder::hashKeyForShaderGraph(QShaderProgram::ShaderType type) const
++{
++    const auto graphPath = Qt3DRender::QUrlHelper::urlToLocalFileOrQrc(shaderGraph(type));
++    QFile file(graphPath);
++    if (!file.exists()) {
++        qWarning() << graphPath << "doesn't exist";
++        return {};
++    }
++
++    QCryptographicHash hashBuilder(QCryptographicHash::Sha1);
++    // Add graphPath
++    hashBuilder.addData(graphPath.toUtf8());
++    // Get TimeStamp and Graph file size
++    QFileInfo info(graphPath);
++    const QString fileInfo = QString::fromUtf8("%1_%2")
++            .arg(info.lastModified().toSecsSinceEpoch())
++            .arg(info.size());
++    hashBuilder.addData(fileInfo.toUtf8());
++
++    // Add Layers
++    for (const QString &layer : m_enabledLayers)
++        hashBuilder.addData(layer.toUtf8());
++
++    // Add GraphicsInfo
++    const QString graphicsInfo = QString::fromUtf8("API: %1 Profile: %2 Major: %3 Minor: %4")
++            .arg(int(m_graphicsApi.m_api))
++            .arg(int(m_graphicsApi.m_profile))
++            .arg(int(m_graphicsApi.m_major))
++            .arg(int(m_graphicsApi.m_minor));
++    hashBuilder.addData(graphicsInfo.toUtf8());
++
++    // Add Shader Type
++    hashBuilder.addData(QString::number(type).toUtf8());
++
++    return hashBuilder.result().toHex();
++}
++
+ } // namespace Render
+ } // namespace Qt3DRender
+ 
+diff --git a/src/render/materialsystem/shaderbuilder_p.h b/src/render/materialsystem/shaderbuilder_p.h
+index 0a799afaa..2aaad882b 100644
+--- a/src/render/materialsystem/shaderbuilder_p.h
++++ b/src/render/materialsystem/shaderbuilder_p.h
+@@ -97,6 +97,8 @@ public:
+ 
+     QVector<ShaderBuilderUpdate> takePendingUpdates() { return std::move(m_pendingUpdates); }
+ 
++    QByteArray hashKeyForShaderGraph(QShaderProgram::ShaderType type) const;
++
+ private:
+     void setEnabledLayers(const QStringList &layers);
+ 
+diff --git a/src/render/picking/objectpicker.cpp b/src/render/picking/objectpicker.cpp
+index 2835d1b0e..cc2ebbf15 100644
+--- a/src/render/picking/objectpicker.cpp
++++ b/src/render/picking/objectpicker.cpp
+@@ -81,7 +81,15 @@ void ObjectPicker::syncFromFrontEnd(const Qt3DCore::QNode *frontEnd, bool firstT
+     if (!node)
+         return;
+ 
+-    BackendNode::syncFromFrontEnd(frontEnd, firstTime);
++    if (firstTime) {
++        markDirty(AbstractRenderer::AllDirty);
++        notifyJob();
++    }
++
++    if (isEnabled() != node->isEnabled()) {
++        markDirty(AbstractRenderer::AllDirty);
++        // We let QBackendNode::syncFromFrontEnd change the enabled property
++    }
+ 
+     if (node->isHoverEnabled() != m_hoverEnabled) {
+         m_hoverEnabled = node->isHoverEnabled();
+@@ -100,6 +108,8 @@ void ObjectPicker::syncFromFrontEnd(const Qt3DCore::QNode *frontEnd, bool firstT
+         markDirty(AbstractRenderer::AllDirty);
+         notifyJob();
+     }
++
++    BackendNode::syncFromFrontEnd(frontEnd, firstTime);
+ }
+ 
+ void ObjectPicker::notifyJob()
+diff --git a/src/render/picking/qpicktriangleevent_p.h b/src/render/picking/qpicktriangleevent_p.h
+index d646ac2bb..8ed4f26f5 100644
+--- a/src/render/picking/qpicktriangleevent_p.h
++++ b/src/render/picking/qpicktriangleevent_p.h
+@@ -40,6 +40,17 @@
+ #ifndef QT3DRENDER_QPICKTRIANGLEEVENT_P_H
+ #define QT3DRENDER_QPICKTRIANGLEEVENT_P_H
+ 
++//
++//  W A R N I N G
++//  -------------
++//
++// This file is not part of the Qt API.  It exists for the convenience
++// of other Qt classes.  This header file may change from version to
++// version without notice, or even be removed.
++//
++// We mean it.
++//
++
+ #include <Qt3DRender/private/qpickevent_p.h>
+ 
+ QT_BEGIN_NAMESPACE
+diff --git a/src/render/renderlogging.cpp b/src/render/renderlogging.cpp
+index 2eb1835e6..fef284c3a 100644
+--- a/src/render/renderlogging.cpp
++++ b/src/render/renderlogging.cpp
+@@ -57,6 +57,7 @@ Q_LOGGING_CATEGORY(Memory, "Qt3D.Renderer.Memory", QtWarningMsg)
+ Q_LOGGING_CATEGORY(Shaders, "Qt3D.Renderer.Shaders", QtWarningMsg)
+ Q_LOGGING_CATEGORY(RenderStates, "Qt3D.Renderer.RenderStates", QtWarningMsg)
+ Q_LOGGING_CATEGORY(VSyncAdvanceService, "Qt3D.Renderer.VsyncAdvanceService", QtWarningMsg)
++Q_LOGGING_CATEGORY(ShaderCache, "Qt3D.Renderer.ShaderCache", QtWarningMsg)
+ 
+ } // namespace Render
+ 
+diff --git a/src/render/renderlogging_p.h b/src/render/renderlogging_p.h
+index 00ae572f4..54f304327 100644
+--- a/src/render/renderlogging_p.h
++++ b/src/render/renderlogging_p.h
+@@ -71,6 +71,7 @@ Q_DECLARE_LOGGING_CATEGORY(Memory)
+ Q_DECLARE_LOGGING_CATEGORY(Shaders)
+ Q_DECLARE_LOGGING_CATEGORY(RenderStates)
+ Q_DECLARE_LOGGING_CATEGORY(VSyncAdvanceService)
++Q_DECLARE_LOGGING_CATEGORY(ShaderCache)
+ 
+ } // namespace Render
+ 
+diff --git a/src/render/renderstates/renderstateset.cpp b/src/render/renderstates/renderstateset.cpp
+index 5b9c4e8b5..f4a3ca0d8 100644
+--- a/src/render/renderstates/renderstateset.cpp
++++ b/src/render/renderstates/renderstateset.cpp
+@@ -104,7 +104,6 @@ StateMaskSet RenderStateSet::stateMask() const
+ // if we don't already contain a state with that type set
+ void RenderStateSet::merge(const RenderStateSet *other)
+ {
+-    m_stateMask |= other->stateMask();
+     const QVector<StateVariant> otherStates = other->states();
+ 
+     // We only add states which are new (different type)
+@@ -113,6 +112,7 @@ void RenderStateSet::merge(const RenderStateSet *other)
+         if (canAdd)
+             m_states.push_back(otherState);
+     }
++    m_stateMask |= other->stateMask();
+ }
+ 
+ bool RenderStateSet::canAddStateOfType(StateMask type) const
+diff --git a/src/render/shadergraph/qshadergenerator.cpp b/src/render/shadergraph/qshadergenerator.cpp
+index a33110719..5ab603de0 100644
+--- a/src/render/shadergraph/qshadergenerator.cpp
++++ b/src/render/shadergraph/qshadergenerator.cpp
+@@ -213,7 +213,7 @@ namespace
+         case QShaderLanguage::Sampler1DArrayShadow:
+             return "sampler1DArrayShadow";
+         case QShaderLanguage::Sampler2DArrayShadow:
+-            return "sample2DArrayShadow";
++            return "sampler2DArrayShadow";
+         case QShaderLanguage::SamplerCubeShadow:
+             return "samplerCubeShadow";
+         case QShaderLanguage::SamplerCubeArrayShadow:
+diff --git a/src/render/shadergraph/qshadernode.cpp b/src/render/shadergraph/qshadernode.cpp
+index e0421e006..56c9961f3 100644
+--- a/src/render/shadergraph/qshadernode.cpp
++++ b/src/render/shadergraph/qshadernode.cpp
+@@ -152,11 +152,15 @@ QVector<QShaderFormat> QShaderNode::availableFormats() const
+ 
+ QShaderNode::Rule QShaderNode::rule(const QShaderFormat &format) const
+ {
+-    const auto it = std::find_if(m_rules.crbegin(), m_rules.crend(),
+-                                 [format](const QPair<QShaderFormat, Rule> &entry) {
+-        return format.supports(entry.first);
+-    });
+-    return it != m_rules.crend() ? it->second : Rule();
++    const QPair<QShaderFormat, Rule> *selected = nullptr;
++    for (auto it = m_rules.crbegin(); it != m_rules.crend(); ++it) {
++        const auto &entry = *it;
++        if (format.supports(entry.first)) {
++            if (!selected || entry.first.version() > selected->first.version())
++                selected = &entry;
++        }
++    }
++    return selected ? selected->second : Rule();
+ }
+ 
+ QShaderNode::Rule::Rule(const QByteArray &subs, const QByteArrayList &snippets) noexcept
+diff --git a/src/render/texture/qabstracttexture.cpp b/src/render/texture/qabstracttexture.cpp
+index 2a955c5d8..364cd4bb6 100644
+--- a/src/render/texture/qabstracttexture.cpp
++++ b/src/render/texture/qabstracttexture.cpp
+@@ -66,6 +66,7 @@ QAbstractTexturePrivate::QAbstractTexturePrivate()
+     , m_comparisonMode(QAbstractTexture::CompareNone)
+     , m_layers(1)
+     , m_samples(1)
++    , m_mipmapLevels(1)
+     , m_sharedTextureId(-1)
+     , m_handleType(QAbstractTexture::NoHandle)
+     , m_handle(QVariant())
+diff --git a/src/render/texture/qabstracttexture_p.h b/src/render/texture/qabstracttexture_p.h
+index 5b2945f73..d663ce51a 100644
+--- a/src/render/texture/qabstracttexture_p.h
++++ b/src/render/texture/qabstracttexture_p.h
+@@ -87,6 +87,7 @@ public :
+     QVector<QAbstractTextureImage *> m_textureImages;
+     int m_layers;
+     int m_samples;
++    int m_mipmapLevels;
+ 
+     int m_sharedTextureId;
+ 
+diff --git a/src/render/texture/texture.cpp b/src/render/texture/texture.cpp
+index dab037568..2bed15f32 100644
+--- a/src/render/texture/texture.cpp
++++ b/src/render/texture/texture.cpp
+@@ -127,6 +127,7 @@ void Texture::syncFromFrontEnd(const QNode *frontEnd, bool firstTime)
+     p.generateMipMaps = node->generateMipMaps();
+     p.layers = node->layers();
+     p.samples = node->samples();
++    p.mipLevels = static_cast<const QAbstractTexturePrivate*>(QAbstractTexturePrivate::get(node))->m_mipmapLevels;
+     if (p != m_properties) {
+         m_properties = p;
+         addDirtyFlag(DirtyProperties);
+diff --git a/tests/auto/render/aspect/tst_aspect.cpp b/tests/auto/render/aspect/tst_aspect.cpp
+index 9bd5df698..5d0ead7ef 100644
+--- a/tests/auto/render/aspect/tst_aspect.cpp
++++ b/tests/auto/render/aspect/tst_aspect.cpp
+@@ -139,6 +139,10 @@ private Q_SLOTS:
+         // THEN -> enabled dirty
+         QCOMPARE(jobs.size(),
+                  1 + // UpdateTreeEnabled
++                 1 + // UpdateTransform
++                 1 + // UpdateWorldBoundingVolume
++                 1 + // CalcBoundingVolume
++                 1 + // ExpandBoundingVolume
+                  1 + // SyncLoadingJobs
+                  1 + // UpdateSkinningPalette
+                  1 + // UpdateLevelOfDetail
+diff --git a/tests/auto/render/computecommand/tst_computecommand.cpp b/tests/auto/render/computecommand/tst_computecommand.cpp
+index d6fa1d579..e583a9c61 100644
+--- a/tests/auto/render/computecommand/tst_computecommand.cpp
++++ b/tests/auto/render/computecommand/tst_computecommand.cpp
+@@ -141,6 +141,10 @@ private Q_SLOTS:
+         backendComputeCommand.setRenderer(&renderer);
+         simulateInitializationSync(&computeCommand, &backendComputeCommand);
+ 
++        // THEN
++        QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++        renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
++
+         {
+             // WHEN
+             const bool newValue = false;
+@@ -149,6 +153,8 @@ private Q_SLOTS:
+ 
+             // THEN
+             QCOMPARE(backendComputeCommand.isEnabled(), newValue);
++            QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++            renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
+         }
+         {
+             // WHEN
+@@ -158,6 +164,8 @@ private Q_SLOTS:
+ 
+             // THEN
+             QCOMPARE(backendComputeCommand.x(), newValue);
++            QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++            renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
+         }
+         {
+             // WHEN
+@@ -167,6 +175,8 @@ private Q_SLOTS:
+ 
+             // THEN
+             QCOMPARE(backendComputeCommand.y(), newValue);
++            QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++            renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
+         }
+         {
+             // WHEN
+@@ -176,6 +186,8 @@ private Q_SLOTS:
+ 
+             // THEN
+             QCOMPARE(backendComputeCommand.z(), newValue);
++            QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++            renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
+         }
+         {
+             // WHEN
+@@ -185,6 +197,8 @@ private Q_SLOTS:
+ 
+             // THEN
+             QCOMPARE(backendComputeCommand.runType(), newValue);
++            QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++            renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
+         }
+         {
+             // WHEN
+@@ -194,6 +208,8 @@ private Q_SLOTS:
+ 
+             // THEN
+             QCOMPARE(backendComputeCommand.frameCount(), newValue);
++            QVERIFY(renderer.dirtyBits() & Qt3DRender::Render::AbstractRenderer::ComputeDirty);
++            renderer.clearDirtyBits(Qt3DRender::Render::AbstractRenderer::AllDirty);
+         }
+     }
+ 
+diff --git a/tests/auto/render/objectpicker/tst_objectpicker.cpp b/tests/auto/render/objectpicker/tst_objectpicker.cpp
+index 24fa2159d..b1898e040 100644
+--- a/tests/auto/render/objectpicker/tst_objectpicker.cpp
++++ b/tests/auto/render/objectpicker/tst_objectpicker.cpp
+@@ -40,6 +40,21 @@ class tst_ObjectPicker : public Qt3DCore::QBackendNodeTester
+     Q_OBJECT
+ private Q_SLOTS:
+ 
++    void checkInitialSync()
++    {
++        // GIVEN
++        TestRenderer renderer;
++        Qt3DRender::Render::ObjectPicker objectPicker;
++        Qt3DRender::QObjectPicker picker;
++
++        // WHEN
++        objectPicker.setRenderer(&renderer);
++        simulateInitializationSync(&picker, &objectPicker);
++
++        // THEN
++        QVERIFY(renderer.dirtyBits() != 0);
++    }
++
+     void checkPeerPropertyMirroring()
+     {
+         // GIVEN
+diff --git a/tests/auto/render/opengl/gltexturemanager/gltexturemanager.pro b/tests/auto/render/opengl/gltexturemanager/gltexturemanager.pro
+new file mode 100644
+index 000000000..7784d8da7
+--- /dev/null
++++ b/tests/auto/render/opengl/gltexturemanager/gltexturemanager.pro
+@@ -0,0 +1,15 @@
++TEMPLATE = app
++
++TARGET = tst_gltexturemanager
++
++QT += core-private 3dcore 3dcore-private 3drender 3drender-private testlib
++
++CONFIG += testcase
++
++SOURCES += tst_gltexturemanager.cpp
++
++include(../../../core/common/common.pri)
++include(../../commons/commons.pri)
++
++# Link Against OpenGL Renderer Plugin
++include(../opengl_render_plugin.pri)
+diff --git a/tests/auto/render/opengl/gltexturemanager/tst_gltexturemanager.cpp b/tests/auto/render/opengl/gltexturemanager/tst_gltexturemanager.cpp
+new file mode 100644
+index 000000000..281c903e3
+--- /dev/null
++++ b/tests/auto/render/opengl/gltexturemanager/tst_gltexturemanager.cpp
+@@ -0,0 +1,115 @@
++/****************************************************************************
++**
++** Copyright (C) 2020 Klaralvdalens Datakonsult AB (KDAB).
++** Contact: https://www.qt.io/licensing/
++**
++** This file is part of the Qt3D module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:GPL-EXCEPT$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
++**
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 3 as published by the Free Software
++** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-3.0.html.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++#include <QtTest/QTest>
++#include <Qt3DRender/QTextureImageDataGenerator>
++#include <glresourcemanagers_p.h>
++#include <glresourcemanagers_p.h>
++#include <gltexture_p.h>
++#include <Qt3DCore/qnodeid.h>
++#include "qbackendnodetester.h"
++#include "testrenderer.h"
++
++class TestImageDataGenerator : public Qt3DRender::QTextureImageDataGenerator
++{
++    int m_id;
++public:
++    TestImageDataGenerator(int id) : m_id(id) {}
++
++    Qt3DRender::QTextureImageDataPtr operator ()() override {
++        return Qt3DRender::QTextureImageDataPtr::create();
++    }
++
++    bool operator ==(const Qt3DRender::QTextureImageDataGenerator &other) const override {
++        const TestImageDataGenerator *otherFunctor = Qt3DRender::functor_cast<TestImageDataGenerator>(&other);
++        return (otherFunctor != nullptr && otherFunctor->m_id == m_id);
++    }
++
++    QT3D_FUNCTOR(TestImageDataGenerator)
++};
++
++using ImageDataGeneratorPtr = QSharedPointer<TestImageDataGenerator>;
++
++class tst_GLTextureManager : public Qt3DCore::QBackendNodeTester
++{
++    Q_OBJECT
++
++private Q_SLOTS:
++    void checkInitialState()
++    {
++        // GIVEN
++        Qt3DRender::Render::OpenGL::GLTextureManager manager;
++        const Qt3DCore::QNodeId id = Qt3DCore::QNodeId::createId();
++        Qt3DRender::Render::OpenGL::GLTexture *t = manager.getOrCreateResource(id);
++
++        // THEN
++        QVERIFY(t != nullptr);
++        QVERIFY(!t->isDirty());
++        QVERIFY(!t->hasTextureData());
++        QVERIFY(!t->hasImagesData());
++        QVERIFY(t->dataGenerator().isNull());
++        QVERIFY(t->textureDataUpdates().empty());
++        QCOMPARE(t->dirtyFlags(),  Qt3DRender::Render::OpenGL::GLTexture::None);
++        QVERIFY(t->images().empty());
++
++        QCOMPARE(t, manager.getOrCreateResource(id));
++    }
++
++    void checkCleanup()
++    {
++        // GIVEN
++        Qt3DRender::Render::OpenGL::GLTextureManager manager;
++        const Qt3DCore::QNodeId id = Qt3DCore::QNodeId::createId();
++        Qt3DRender::Render::OpenGL::GLTexture *t = manager.getOrCreateResource(id);
++
++        // WHEN
++        Qt3DRender::Render::OpenGL::GLTexture::Image img = {
++            ImageDataGeneratorPtr::create(0),
++            0, 0,
++            Qt3DRender::QAbstractTexture::AllFaces
++        };
++        t->setImages({img});
++
++        // THEN
++        QCOMPARE(t->images().size(), 1);
++        QCOMPARE(t->dirtyFlags(),  Qt3DRender::Render::OpenGL::GLTexture::TextureImageData);
++
++        // WHEN
++        manager.releaseResource(id);
++
++        // THEN -> Cleanup should have been called
++        Qt3DRender::Render::OpenGL::GLTexture *t2 = manager.getOrCreateResource(id);
++        QCOMPARE(t, t2);
++        QVERIFY(t->images().empty());
++        QCOMPARE(t->dirtyFlags(),  Qt3DRender::Render::OpenGL::GLTexture::None);
++    }
++};
++
++QTEST_APPLESS_MAIN(tst_GLTextureManager)
++
++#include "tst_gltexturemanager.moc"
+diff --git a/tests/auto/render/opengl/graphicshelpergl4/tst_graphicshelpergl4.cpp b/tests/auto/render/opengl/graphicshelpergl4/tst_graphicshelpergl4.cpp
+index 8f86f38ce..6cb03b514 100644
+--- a/tests/auto/render/opengl/graphicshelpergl4/tst_graphicshelpergl4.cpp
++++ b/tests/auto/render/opengl/graphicshelpergl4/tst_graphicshelpergl4.cpp
+@@ -469,6 +469,113 @@ private Q_SLOTS:
+                 m_func->glDeleteFramebuffers(1, &fboId);
+             }
+         }
++
++        // TargetCubeMapArray
++        {
++            // GIVEN
++            QOpenGLTexture texture(QOpenGLTexture::TargetCubeMapArray);
++            texture.setSize(512, 512);
++            texture.setFormat(QOpenGLTexture::RGBA32F);
++            texture.setMinificationFilter(QOpenGLTexture::Linear);
++            texture.setMagnificationFilter(QOpenGLTexture::Linear);
++            texture.setWrapMode(QOpenGLTexture::ClampToEdge);
++            texture.setLayers(4);
++            if (!texture.create())
++                qWarning() << "Texture creation failed";
++            texture.allocateStorage();
++            QVERIFY(texture.isStorageAllocated());
++            GLint error = m_func->glGetError();
++            QVERIFY(error == 0);
++
++            { // Check All Faces
++
++                // GIVEN
++                GLuint fboId;
++                m_func->glGenFramebuffers(1, &fboId);
++
++                // THEN
++                QVERIFY(fboId != 0);
++
++                // WHEN
++                m_func->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboId);
++
++                Attachment attachment;
++                attachment.m_point = QRenderTargetOutput::Color0;
++                attachment.m_face = Qt3DRender::QAbstractTexture::AllFaces;
++
++                m_glHelper.bindFrameBufferAttachment(&texture, attachment);
++
++                // THEN
++                GLenum status = m_func->glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
++                QVERIFY(status == GL_FRAMEBUFFER_COMPLETE);
++
++                error = m_func->glGetError();
++                QVERIFY(error == 0);
++
++                // Texture should be layered and attached to layer 0 since CubeMapArray textures
++                // are bound to entire texture, not a specific layer
++                GLint textureIsLayered = 0;
++                m_func->glGetFramebufferAttachmentParameteriv(
++                        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
++                        GL_FRAMEBUFFER_ATTACHMENT_LAYERED, &textureIsLayered);
++                QCOMPARE(textureIsLayered, GL_TRUE);
++
++                GLint textureLayer = 0;
++                m_func->glGetFramebufferAttachmentParameteriv(
++                        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
++                        GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER, &textureLayer);
++                QCOMPARE(textureLayer, 0);
++
++                // Restore state
++                m_func->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
++                m_func->glDeleteFramebuffers(1, &fboId);
++            }
++            { // Check Specific Faces
++
++                // GIVEN
++                GLuint fboId;
++                m_func->glGenFramebuffers(1, &fboId);
++
++                // THEN
++                QVERIFY(fboId != 0);
++
++                // WHEN
++                m_func->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboId);
++
++                Attachment attachment;
++                attachment.m_point = QRenderTargetOutput::Color0;
++                attachment.m_face = Qt3DRender::QAbstractTexture::CubeMapNegativeZ;
++                attachment.m_layer = 1;
++
++                m_glHelper.bindFrameBufferAttachment(&texture, attachment);
++
++                // THEN
++                GLenum status = m_func->glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
++                QVERIFY(status == GL_FRAMEBUFFER_COMPLETE);
++
++                error = m_func->glGetError();
++                QVERIFY(error == 0);
++
++                GLint textureIsLayered = 0;
++                m_func->glGetFramebufferAttachmentParameteriv(
++                        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
++                        GL_FRAMEBUFFER_ATTACHMENT_LAYERED, &textureIsLayered);
++                QCOMPARE(textureIsLayered, GL_FALSE);
++
++                GLint textureLayer = 0;
++                m_func->glGetFramebufferAttachmentParameteriv(
++                        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
++                        GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER, &textureLayer);
++                // actual layer should be 6 * layer + face
++                const auto faceNo =
++                        attachment.m_face - Qt3DRender::QAbstractTexture::CubeMapPositiveX;
++                QCOMPARE(textureLayer, 6 * attachment.m_layer + faceNo);
++
++                // Restore state
++                m_func->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
++                m_func->glDeleteFramebuffers(1, &fboId);
++            }
++        }
+     }
+ 
+     void bindFrameBufferObject()
+diff --git a/tests/auto/render/opengl/opengl.pro b/tests/auto/render/opengl/opengl.pro
+index fead9b5ff..2e99a970d 100644
+--- a/tests/auto/render/opengl/opengl.pro
++++ b/tests/auto/render/opengl/opengl.pro
+@@ -13,7 +13,8 @@ SUBDIRS += \
+         renderqueue \
+         renderviewbuilder \
+         qgraphicsutils \
+-        computecommand
++        computecommand \
++        gltexturemanager
+ 
+ qtHaveModule(quick) {
+     SUBDIRS += \
+diff --git a/tests/auto/render/pickboundingvolumejob/pickboundingvolumejob.qrc b/tests/auto/render/pickboundingvolumejob/pickboundingvolumejob.qrc
+index 76150da31..df0198f76 100644
+--- a/tests/auto/render/pickboundingvolumejob/pickboundingvolumejob.qrc
++++ b/tests/auto/render/pickboundingvolumejob/pickboundingvolumejob.qrc
+@@ -12,5 +12,7 @@
+         <file>testscene_cameraposition.qml</file>
+         <file>testscene_priorityoverlapping.qml</file>
+         <file>testscene_nopicking.qml</file>
++        <file>testscene_layerfilter.qml</file>
++        <file>testscene_nested_layerfilter.qml</file>
+     </qresource>
+ </RCC>
+diff --git a/tests/auto/render/pickboundingvolumejob/testscene_layerfilter.qml b/tests/auto/render/pickboundingvolumejob/testscene_layerfilter.qml
+new file mode 100644
+index 000000000..392623a6a
+--- /dev/null
++++ b/tests/auto/render/pickboundingvolumejob/testscene_layerfilter.qml
+@@ -0,0 +1,162 @@
++/****************************************************************************
++**
++** Copyright (C) 2021 Klaralvdalens Datakonsult AB (KDAB).
++** Contact: https://www.qt.io/licensing/
++**
++** This file is part of the Qt3D module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:BSD$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
++**
++** BSD License Usage
++** Alternatively, you may use this file under the terms of the BSD license
++** as follows:
++**
++** "Redistribution and use in source and binary forms, with or without
++** modification, are permitted provided that the following conditions are
++** met:
++**   * Redistributions of source code must retain the above copyright
++**     notice, this list of conditions and the following disclaimer.
++**   * Redistributions in binary form must reproduce the above copyright
++**     notice, this list of conditions and the following disclaimer in
++**     the documentation and/or other materials provided with the
++**     distribution.
++**   * Neither the name of The Qt Company Ltd nor the names of its
++**     contributors may be used to endorse or promote products derived
++**     from this software without specific prior written permission.
++**
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++import Qt3D.Core 2.0
++import Qt3D.Render 2.0
++import Qt3D.Extras 2.0
++import QtQuick.Window 2.0
++
++Entity {
++    id: sceneRoot
++
++    Window {
++        id: _view
++        width: 600
++        height: 600
++        visible: true
++    }
++
++    Camera {
++        id: camera
++        projectionType: CameraLens.PerspectiveProjection
++        fieldOfView: 45
++        aspectRatio: _view.width / 2 / _view.height
++        nearPlane : 0.1
++        farPlane : 1000.0
++        position: Qt.vector3d( 0.0, 0.0, -10.0 )
++        upVector: Qt.vector3d( 0.0, 1.0, 0.0 )
++        viewCenter: Qt.vector3d( 0.0, 0.0, 0.0 )
++    }
++
++    Camera {
++        id: camera2
++        projectionType: CameraLens.PerspectiveProjection
++        fieldOfView: 45
++        aspectRatio: _view.width / 2 / _view.height
++        nearPlane : 0.1
++        farPlane : 1000.0
++        position: Qt.vector3d( 0.0, 0.0, -10.0 )
++        upVector: Qt.vector3d( 0.0, 1.0, 0.0 )
++        viewCenter: Qt.vector3d( 0.0, 0.0, 0.0 )
++    }
++
++    FirstPersonCameraController {
++        camera: camera
++    }
++
++    DirectionalLight {
++        worldDirection: camera.viewVector.times(-1)
++    }
++
++    // Draw 2 viewports
++    components: [
++        RenderSettings {
++            RenderSurfaceSelector {
++                surface: _view
++
++                Viewport {
++                    normalizedRect: Qt.rect(0.0, 0.0, 0.5, 1.0)
++                    ClearBuffers {
++                        buffers : ClearBuffers.ColorDepthBuffer
++                        clearColor: "white"
++                        CameraSelector {
++                            camera: camera
++
++                            LayerFilter {
++                                layers: [ layer1 ]
++                            }
++                        }
++                    }
++                }
++
++                Viewport {
++                    normalizedRect: Qt.rect(0.5, 0.0, 0.5, 1.0)
++                    CameraSelector {
++                        camera: camera2
++
++                        LayerFilter {
++                            layers: [ layer2 ]
++                        }
++                    }
++                }
++            }
++        }
++    ]
++
++    CuboidMesh { id: cubeMesh }
++
++    Entity {
++        readonly property ObjectPicker objectPicker: ObjectPicker {
++            objectName: "Picker1"
++            onClicked: console.log("o1")
++        }
++        readonly property Transform transform: Transform {
++            scale: 4
++        }
++        readonly property PhongMaterial material: PhongMaterial { diffuse: "red" }
++        readonly property Layer layer: Layer { id: layer1 }
++
++        components: [cubeMesh, transform, material, objectPicker, layer ]
++    }
++
++    Entity {
++        readonly property ObjectPicker objectPicker: ObjectPicker {
++            objectName: "Picker2"
++            onClicked: console.log("o2")
++        }
++        readonly property Transform transform: Transform {
++            scale: 3
++        }
++        readonly property PhongMaterial material: PhongMaterial { diffuse: "green" }
++        readonly property Layer layer: Layer { id: layer2 }
++
++        components: [cubeMesh, transform, material, objectPicker, layer ]
++    }
++}
+diff --git a/tests/auto/render/pickboundingvolumejob/testscene_nested_layerfilter.qml b/tests/auto/render/pickboundingvolumejob/testscene_nested_layerfilter.qml
+new file mode 100644
+index 000000000..b913b6f5f
+--- /dev/null
++++ b/tests/auto/render/pickboundingvolumejob/testscene_nested_layerfilter.qml
+@@ -0,0 +1,233 @@
++/****************************************************************************
++**
++** Copyright (C) 2021 Klaralvdalens Datakonsult AB (KDAB).
++** Contact: https://www.qt.io/licensing/
++**
++** This file is part of the Qt3D module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:BSD$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
++**
++** BSD License Usage
++** Alternatively, you may use this file under the terms of the BSD license
++** as follows:
++**
++** "Redistribution and use in source and binary forms, with or without
++** modification, are permitted provided that the following conditions are
++** met:
++**   * Redistributions of source code must retain the above copyright
++**     notice, this list of conditions and the following disclaimer.
++**   * Redistributions in binary form must reproduce the above copyright
++**     notice, this list of conditions and the following disclaimer in
++**     the documentation and/or other materials provided with the
++**     distribution.
++**   * Neither the name of The Qt Company Ltd nor the names of its
++**     contributors may be used to endorse or promote products derived
++**     from this software without specific prior written permission.
++**
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++import Qt3D.Core 2.0
++import Qt3D.Render 2.0
++import Qt3D.Extras 2.0
++import QtQuick.Window 2.0
++
++Entity {
++    id: sceneRoot
++
++    Window {
++        id: _view
++        width: 600
++        height: 600
++        visible: true
++    }
++
++    Camera {
++        id: camera
++        projectionType: CameraLens.PerspectiveProjection
++        fieldOfView: 45
++        aspectRatio: _view.width / 2 / _view.height
++        nearPlane : 0.1
++        farPlane : 1000.0
++        position: Qt.vector3d( 0.0, 0.0, -10.0 )
++        upVector: Qt.vector3d( 0.0, 1.0, 0.0 )
++        viewCenter: Qt.vector3d( 0.0, 0.0, 0.0 )
++    }
++
++    Camera {
++        id: camera2
++        projectionType: CameraLens.PerspectiveProjection
++        fieldOfView: 45
++        aspectRatio: _view.width / 2 / _view.height
++        nearPlane : 0.1
++        farPlane : 1000.0
++        position: Qt.vector3d( 0.0, 0.0, -10.0 )
++        upVector: Qt.vector3d( 0.0, 1.0, 0.0 )
++        viewCenter: Qt.vector3d( 0.0, 0.0, 0.0 )
++    }
++
++    FirstPersonCameraController {
++        camera: camera
++    }
++
++    DirectionalLight {
++        worldDirection: camera.viewVector.times(-1)
++    }
++
++    // Draw 2 viewports
++    components: [
++        RenderSettings {
++            RenderSurfaceSelector {
++                surface: _view
++
++                Viewport {
++                    normalizedRect: Qt.rect(0.0, 0.0, 0.5, 1.0)
++                    ClearBuffers {
++                        buffers : ClearBuffers.ColorDepthBuffer
++                        clearColor: "red"
++                        CameraSelector {
++                            camera: camera
++
++                            LayerFilter {
++                                // Any of
++                                layers: [ layer1, layer3 ]
++
++                                LayerFilter {
++                                    filterMode: LayerFilter.DiscardAnyMatchingLayers
++                                    layers: [layer2]
++                                }
++                            }
++                        }
++                    }
++                }
++
++                Viewport {
++                    normalizedRect: Qt.rect(0.5, 0.0, 0.5, 1.0)
++                    CameraSelector {
++                        camera: camera2
++
++                        LayerFilter {
++                            layers: [ layerRecursive ]
++
++                            LayerFilter {
++                                filterMode: LayerFilter.DiscardAnyMatchingLayers
++                                layers: [layer1]
++                            }
++                        }
++                    }
++                }
++            }
++
++            pickingSettings {
++                pickMethod: PickingSettings.TrianglePicking
++            }
++        }
++    ]
++
++    CuboidMesh { id: cubeMesh }
++
++    Layer { id: layerRecursive; recursive: true }
++    Layer { id: layer1 }
++    Layer { id: layer2 }
++    Layer { id: layer3 }
++
++    Entity {
++        id: rootSceneEntity
++        components: [layerRecursive]
++
++        // Selected by Viewport 1
++        Entity {
++            readonly property ObjectPicker objectPicker: ObjectPicker {
++                objectName: "Picker1"
++                onClicked: console.log("o1 " + pick.position)
++            }
++            readonly property Transform transform: Transform {
++                scale: 2
++                translation: Qt.vector3d(-1, 0, 0)
++            }
++            readonly property PhongMaterial material: PhongMaterial { diffuse: "red" }
++
++            components: [cubeMesh, transform, material, objectPicker, layer1 ]
++        }
++
++        // Selected by Viewport 2
++        Entity {
++            readonly property ObjectPicker objectPicker: ObjectPicker {
++                objectName: "Picker2"
++                onClicked: console.log("o2" + pick.position)
++            }
++            readonly property Transform transform: Transform {
++                scale: 3
++                translation: Qt.vector3d(-2, 3, 5)
++            }
++            readonly property PhongMaterial material: PhongMaterial { diffuse: "green" }
++
++            components: [cubeMesh, transform, material, objectPicker, layer2 ]
++        }
++
++        // Not Selected by Any Viewport
++        Entity {
++            readonly property ObjectPicker objectPicker: ObjectPicker {
++                objectName: "Picker3"
++                onClicked: console.log("o3" + pick.position)
++            }
++            readonly property Transform transform: Transform {
++                scale: 4
++            }
++            readonly property PhongMaterial material: PhongMaterial { diffuse: "blue" }
++
++            components: [cubeMesh, transform, material, objectPicker, layer1, layer2 ]
++        }
++
++        // Both Viewport
++        Entity {
++            readonly property ObjectPicker objectPicker: ObjectPicker {
++                objectName: "Picker4"
++                onClicked: console.log("o4" + pick.position)
++            }
++            readonly property Transform transform: Transform {
++                scale: 1
++                translation: Qt.vector3d(0, -2, -1)
++            }
++            readonly property PhongMaterial material: PhongMaterial { diffuse: "orange" }
++
++            components: [cubeMesh, transform, material, objectPicker, layer3 ]
++        }
++
++        // Viewport 1
++        Entity {
++            readonly property ObjectPicker objectPicker: ObjectPicker {
++                objectName: "Picker5"
++                onClicked: console.log("o5" + pick.position)
++            }
++            readonly property Transform transform: Transform {
++                scale: 2
++                translation: Qt.vector3d(0, 1, 3)
++            }
++            readonly property PhongMaterial material: PhongMaterial { diffuse: "purple" }
++
++            components: [cubeMesh, transform, material, objectPicker, layer3, layer1 ]
++        }
++    }
++}
+diff --git a/tests/auto/render/pickboundingvolumejob/tst_pickboundingvolumejob.cpp b/tests/auto/render/pickboundingvolumejob/tst_pickboundingvolumejob.cpp
+index 0c1ee0183..41afb0ee9 100644
+--- a/tests/auto/render/pickboundingvolumejob/tst_pickboundingvolumejob.cpp
++++ b/tests/auto/render/pickboundingvolumejob/tst_pickboundingvolumejob.cpp
+@@ -60,6 +60,7 @@
+ #include <Qt3DRender/private/expandboundingvolumejob_p.h>
+ #include <Qt3DRender/private/calcboundingvolumejob_p.h>
+ #include <Qt3DRender/private/calcgeometrytrianglevolumes_p.h>
++#include <Qt3DRender/private/updateentitylayersjob_p.h>
+ #include <Qt3DRender/private/loadbufferjob_p.h>
+ #include <Qt3DRender/private/buffermanager_p.h>
+ #include <Qt3DRender/private/geometryrenderermanager_p.h>
+@@ -215,6 +216,10 @@ void runRequiredJobs(Qt3DRender::TestAspect *test)
+         Qt3DRender::Render::CalcGeometryTriangleVolumes calcGeometryTriangles(geometryRendererId, test->nodeManagers());
+         calcGeometryTriangles.run();
+     }
++
++    Qt3DRender::Render::UpdateEntityLayersJob updateEntityLayer;
++    updateEntityLayer.setManager(test->nodeManagers());
++    updateEntityLayer.run();
+ }
+ 
+ void initializePickBoundingVolumeJob(Qt3DRender::Render::PickBoundingVolumeJob *job, Qt3DRender::TestAspect *test)
+@@ -287,7 +292,6 @@ private:
+     }
+ 
+ private Q_SLOTS:
+-
+     void viewportCameraAreaGather()
+     {
+         // GIVEN
+@@ -1547,6 +1551,390 @@ private Q_SLOTS:
+         QCOMPARE(mouseExited.count(), 0);
+     }
+ 
++    void checkPickerAndLayerFilters()
++    {
++        // GIVEN
++        QmlSceneReader sceneReader(QUrl("qrc:/testscene_layerfilter.qml"));
++        QScopedPointer<Qt3DCore::QNode> root(qobject_cast<Qt3DCore::QNode *>(sceneReader.root()));
++        QVERIFY(root);
++
++        QScopedPointer<Qt3DRender::TestAspect> test(new Qt3DRender::TestAspect(root.data()));
++        TestArbiter arbiter;
++
++        // Runs Required jobs
++        runRequiredJobs(test.data());
++
++        // THEN
++        // object partially obscured by another viewport, make sure only visible portion is pickable
++        QList<Qt3DRender::QObjectPicker *> pickers = root->findChildren<Qt3DRender::QObjectPicker *>();
++        QCOMPARE(pickers.size(), 2);
++
++        Qt3DRender::QObjectPicker *picker1 = pickers.front();
++        QCOMPARE(picker1->objectName(), QLatin1String("Picker1"));
++
++        Qt3DRender::Render::ObjectPicker *backendPicker1 = test->nodeManagers()->objectPickerManager()->lookupResource(picker1->id());
++        QVERIFY(backendPicker1);
++
++        QSignalSpy mouseButtonPressedSpy1(picker1, &Qt3DRender::QObjectPicker::pressed);
++
++        QVERIFY(mouseButtonPressedSpy1.isValid());
++
++        Qt3DRender::QObjectPicker *picker2 = pickers.last();
++        QCOMPARE(picker2->objectName(), QLatin1String("Picker2"));
++
++        Qt3DRender::Render::ObjectPicker *backendPicker2 = test->nodeManagers()->objectPickerManager()->lookupResource(picker2->id());
++        QVERIFY(backendPicker2);
++
++        QSignalSpy mouseButtonPressedSpy2(picker2, &Qt3DRender::QObjectPicker::pressed);
++
++        QVERIFY(mouseButtonPressedSpy2.isValid());
++
++        // WHEN -> Pressed on object in vp1
++        Qt3DRender::Render::PickBoundingVolumeJob pickBVJob;
++        initializePickBoundingVolumeJob(&pickBVJob, test.data());
++
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(150., 300.),
++                              Qt::LeftButton, Qt::LeftButton, Qt::NoModifier) });
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Pressed
++            QVERIFY(!earlyReturn);
++            QVERIFY(backendPicker1->isPressed());
++            QVERIFY(picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 0);
++
++            events.clear();
++
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonRelease, QPointF(150., 300.),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            pickBVJob.runHelper();
++        }
++
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(450., 300.),
++                              Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Nothing happened
++            QVERIFY(!earlyReturn);
++            QVERIFY(backendPicker2->isPressed());
++            QVERIFY(picker2->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++        }
++    }
++
++    void checkPickerAndNestedLayerFilters()
++    {
++        // GIVEN
++        QmlSceneReader sceneReader(QUrl("qrc:/testscene_nested_layerfilter.qml"));
++        QScopedPointer<Qt3DCore::QNode> root(qobject_cast<Qt3DCore::QNode *>(sceneReader.root()));
++        QVERIFY(root);
++
++        QScopedPointer<Qt3DRender::TestAspect> test(new Qt3DRender::TestAspect(root.data()));
++        TestArbiter arbiter;
++
++        // Runs Required jobs
++        runRequiredJobs(test.data());
++
++        // THEN
++        // object partially obscured by another viewport, make sure only visible portion is pickable
++        QList<Qt3DRender::QObjectPicker *> pickers = root->findChildren<Qt3DRender::QObjectPicker *>();
++        QCOMPARE(pickers.size(), 5);
++
++        Qt3DRender::QObjectPicker *picker1 = pickers[0];
++        QCOMPARE(picker1->objectName(), QLatin1String("Picker1"));
++        Qt3DRender::QObjectPicker *picker2 = pickers[1];
++        QCOMPARE(picker2->objectName(), QLatin1String("Picker2"));
++        Qt3DRender::QObjectPicker *picker3 = pickers[2];
++        QCOMPARE(picker3->objectName(), QLatin1String("Picker3"));
++        Qt3DRender::QObjectPicker *picker4 = pickers[3];
++        QCOMPARE(picker4->objectName(), QLatin1String("Picker4"));
++        Qt3DRender::QObjectPicker *picker5 = pickers[4];
++        QCOMPARE(picker5->objectName(), QLatin1String("Picker5"));
++
++        Qt3DRender::Render::ObjectPicker *backendPicker1 = test->nodeManagers()->objectPickerManager()->lookupResource(picker1->id());
++        QVERIFY(backendPicker1);
++
++        QSignalSpy mouseButtonPressedSpy1(picker1, &Qt3DRender::QObjectPicker::pressed);
++        QVERIFY(mouseButtonPressedSpy1.isValid());
++
++        Qt3DRender::Render::ObjectPicker *backendPicker2 = test->nodeManagers()->objectPickerManager()->lookupResource(picker2->id());
++        QVERIFY(backendPicker2);
++
++        QSignalSpy mouseButtonPressedSpy2(picker2, &Qt3DRender::QObjectPicker::pressed);
++        QVERIFY(mouseButtonPressedSpy2.isValid());
++
++        Qt3DRender::Render::ObjectPicker *backendPicker3 = test->nodeManagers()->objectPickerManager()->lookupResource(picker3->id());
++        QVERIFY(backendPicker3);
++
++        QSignalSpy mouseButtonPressedSpy3(picker3, &Qt3DRender::QObjectPicker::pressed);
++        QVERIFY(mouseButtonPressedSpy3.isValid());
++
++        Qt3DRender::Render::ObjectPicker *backendPicker4 = test->nodeManagers()->objectPickerManager()->lookupResource(picker4->id());
++        QVERIFY(backendPicker4);
++
++        QSignalSpy mouseButtonPressedSpy4(picker4, &Qt3DRender::QObjectPicker::pressed);
++        QVERIFY(mouseButtonPressedSpy4.isValid());
++
++        Qt3DRender::Render::ObjectPicker *backendPicker5 = test->nodeManagers()->objectPickerManager()->lookupResource(picker5->id());
++        QVERIFY(backendPicker5);
++
++        QSignalSpy mouseButtonPressedSpy5(picker5, &Qt3DRender::QObjectPicker::pressed);
++        QVERIFY(mouseButtonPressedSpy5.isValid());
++
++        Qt3DRender::Render::PickBoundingVolumeJob pickBVJob;
++        initializePickBoundingVolumeJob(&pickBVJob, test.data());
++
++        // Picker1 -> Viewport 1
++        // Picker2 -> Viewport 2
++        // Picker3 -> No Viewport
++        // Picker4 -> Viewport 1 and 2
++        // Picker5 -> Viewport 1
++
++        // WHEN -> Pressed on object1 in VP1
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(200.0f, 300.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Pressed
++            QVERIFY(!earlyReturn);
++            QVERIFY(backendPicker1->isPressed());
++            QVERIFY(picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(!backendPicker4->isPressed());
++            QVERIFY(!picker4->isPressed());
++            QVERIFY(!backendPicker5->isPressed());
++            QVERIFY(!picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 0);
++
++            events.clear();
++
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonRelease, QPointF(200.0f, 300.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            pickBVJob.runHelper();
++        }
++
++        // WHEN -> Pressed on object2 in VP2
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(541.0f, 183.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Pressed
++            QVERIFY(!earlyReturn);
++            QVERIFY(!backendPicker1->isPressed());
++            QVERIFY(!picker1->isPressed());
++            QVERIFY(backendPicker2->isPressed());
++            QVERIFY(picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(!backendPicker4->isPressed());
++            QVERIFY(!picker4->isPressed());
++            QVERIFY(!backendPicker5->isPressed());
++            QVERIFY(!picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 0);
++
++            events.clear();
++
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonRelease, QPointF(541.0f, 183.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            pickBVJob.runHelper();
++        }
++
++        // WHEN -> Pressed on object3 in VP1
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(80.0f, 150.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Nothing Pressed as not selected by Layer
++            QVERIFY(!earlyReturn);
++            QVERIFY(!backendPicker1->isPressed());
++            QVERIFY(!picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(!backendPicker4->isPressed());
++            QVERIFY(!picker4->isPressed());
++            QVERIFY(!backendPicker5->isPressed());
++            QVERIFY(!picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 0);
++        }
++
++        // WHEN -> Pressed on object3 in VP2
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(504.0f, 263.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Nothing Pressed as not selected by Layer
++            QVERIFY(!earlyReturn);
++            QVERIFY(!backendPicker1->isPressed());
++            QVERIFY(!picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(!backendPicker4->isPressed());
++            QVERIFY(!picker4->isPressed());
++            QVERIFY(!backendPicker5->isPressed());
++            QVERIFY(!picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 0);
++        }
++
++        // WHEN -> Pressed on object4 in VP1
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(160.0f, 431.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Pressed
++            QVERIFY(!earlyReturn);
++            QVERIFY(!backendPicker1->isPressed());
++            QVERIFY(!picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(backendPicker4->isPressed());
++            QVERIFY(picker4->isPressed());
++            QVERIFY(!backendPicker5->isPressed());
++            QVERIFY(!picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 0);
++
++            events.clear();
++
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonRelease, QPointF(160.0f, 431.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            pickBVJob.runHelper();
++        }
++
++        // WHEN -> Pressed on object4 in VP2
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(447.0f, 472.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Pressed
++            QVERIFY(!earlyReturn);
++            QVERIFY(!backendPicker1->isPressed());
++            QVERIFY(!picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(backendPicker4->isPressed());
++            QVERIFY(picker4->isPressed());
++            QVERIFY(!backendPicker5->isPressed());
++            QVERIFY(!picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 2);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 0);
++
++            events.clear();
++
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonRelease, QPointF(447.0f, 472.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            pickBVJob.runHelper();
++        }
++
++        // WHEN -> Pressed on object5 in VP1
++        {
++            QList<QPair<QObject *, QMouseEvent>> events;
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonPress, QPointF(153.0f, 195.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            bool earlyReturn = !pickBVJob.runHelper();
++            Qt3DCore::QAspectJobPrivate::get(&pickBVJob)->postFrame(test->aspectManager());
++
++            // THEN -> Pressed
++            QVERIFY(!earlyReturn);
++            QVERIFY(!backendPicker1->isPressed());
++            QVERIFY(!picker1->isPressed());
++            QVERIFY(!backendPicker2->isPressed());
++            QVERIFY(!picker2->isPressed());
++            QVERIFY(!backendPicker3->isPressed());
++            QVERIFY(!picker3->isPressed());
++            QVERIFY(!backendPicker4->isPressed());
++            QVERIFY(!picker4->isPressed());
++            QVERIFY(backendPicker5->isPressed());
++            QVERIFY(picker5->isPressed());
++            QCOMPARE(mouseButtonPressedSpy1.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy2.count(), 1);
++            QCOMPARE(mouseButtonPressedSpy3.count(), 0);
++            QCOMPARE(mouseButtonPressedSpy4.count(), 2);
++            QCOMPARE(mouseButtonPressedSpy5.count(), 1);
++
++            events.clear();
++
++            events.push_back({nullptr, QMouseEvent(QMouseEvent::MouseButtonRelease, QPointF(153.0f, 195.0f),
++                                     Qt::LeftButton, Qt::LeftButton, Qt::NoModifier)});
++            pickBVJob.setMouseEvents(events);
++            pickBVJob.runHelper();
++        }
++    }
++
+     void checkMultipleRayDirections_data()
+     {
+         QTest::addColumn<QVector3D>("cameraOrigin");
+@@ -1879,7 +2267,6 @@ private Q_SLOTS:
+         QCOMPARE(vca.cameraId, camera->id());
+         QCOMPARE(vca.viewport, QRectF(0., 0., 1., 1.));
+     }
+-
+ };
+ 
+ QTEST_MAIN(tst_PickBoundingVolumeJob)
+diff --git a/tests/auto/render/qsceneloader/tst_qsceneloader.cpp b/tests/auto/render/qsceneloader/tst_qsceneloader.cpp
+index 79ca6a291..58f9ccced 100644
+--- a/tests/auto/render/qsceneloader/tst_qsceneloader.cpp
++++ b/tests/auto/render/qsceneloader/tst_qsceneloader.cpp
+@@ -180,6 +180,13 @@ private Q_SLOTS:
+         QCOMPARE(loader.entity(e3Name), &e3);
+         QCOMPARE(loader.entity(e4Name), &e4);
+ 
++        QCOMPARE(loader.component(e1Name, Qt3DRender::QSceneLoader::UnknownComponent), nullptr);
++        QCOMPARE(loader.component(e1Name, Qt3DRender::QSceneLoader::TransformComponent), nullptr);
++        QCOMPARE(loader.component(e1Name, Qt3DRender::QSceneLoader::GeometryRendererComponent), nullptr);
++        QCOMPARE(loader.component(e1Name, Qt3DRender::QSceneLoader::MaterialComponent), nullptr);
++        QCOMPARE(loader.component(e1Name, Qt3DRender::QSceneLoader::LightComponent), nullptr);
++        QCOMPARE(loader.component(e1Name, Qt3DRender::QSceneLoader::CameraLensComponent), nullptr);
++
+         QCOMPARE(loader.component(e2Name, Qt3DRender::QSceneLoader::UnknownComponent), nullptr);
+         QCOMPARE(loader.component(e2Name, Qt3DRender::QSceneLoader::TransformComponent), &trans);
+         QCOMPARE(loader.component(e2Name, Qt3DRender::QSceneLoader::GeometryRendererComponent), nullptr);
+diff --git a/tests/auto/render/raycastingjob/tst_raycastingjob.cpp b/tests/auto/render/raycastingjob/tst_raycastingjob.cpp
+index 9eb73cbd6..6638d88d9 100644
+--- a/tests/auto/render/raycastingjob/tst_raycastingjob.cpp
++++ b/tests/auto/render/raycastingjob/tst_raycastingjob.cpp
+@@ -58,6 +58,7 @@
+ #include <Qt3DRender/private/calcboundingvolumejob_p.h>
+ #include <Qt3DRender/private/calcgeometrytrianglevolumes_p.h>
+ #include <Qt3DRender/private/loadbufferjob_p.h>
++#include <Qt3DRender/private/updateentitylayersjob_p.h>
+ #include <Qt3DRender/private/buffermanager_p.h>
+ #include <Qt3DRender/private/geometryrenderermanager_p.h>
+ 
+@@ -212,6 +213,10 @@ void runRequiredJobs(Qt3DRender::TestAspect *test)
+         Qt3DRender::Render::CalcGeometryTriangleVolumes calcGeometryTriangles(geometryRendererId, test->nodeManagers());
+         calcGeometryTriangles.run();
+     }
++
++    Qt3DRender::Render::UpdateEntityLayersJob updateEntityLayer;
++    updateEntityLayer.setManager(test->nodeManagers());
++    updateEntityLayer.run();
+ }
+ 
+ void initializeJob(Qt3DRender::Render::RayCastingJob *job, Qt3DRender::TestAspect *test)
+diff --git a/tests/auto/render/shaderbuilder/tst_shaderbuilder.cpp b/tests/auto/render/shaderbuilder/tst_shaderbuilder.cpp
+index 9be7db5f1..5dac73a61 100644
+--- a/tests/auto/render/shaderbuilder/tst_shaderbuilder.cpp
++++ b/tests/auto/render/shaderbuilder/tst_shaderbuilder.cpp
+@@ -272,6 +272,7 @@ private slots:
+     void shouldHandleEnabledLayersPropertyChange()
+     {
+         // GIVEN
++        qputenv("QT3D_DISABLE_SHADER_CACHE", "1");
+         Qt3DRender::Render::ShaderBuilder backend;
+         Qt3DRender::QShaderProgramBuilder frontend;
+         TestRenderer renderer;
+@@ -469,6 +470,7 @@ private slots:
+     void shouldHandleShaderCodeGeneration()
+     {
+         // GIVEN
++        qputenv("QT3D_DISABLE_SHADER_CACHE", "1");
+         Qt3DRender::Render::ShaderBuilder::setPrototypesFile(":/prototypes.json");
+         QVERIFY(!Qt3DRender::Render::ShaderBuilder::getPrototypeNames().isEmpty());
+ 
+@@ -556,8 +558,7 @@ private slots:
+     void checkCodeUpdatedNotification()
+     {
+         // GIVEN
+-        QSKIP("Disabled for Qt Base QShaderGenerator Integration");
+-
++        qputenv("QT3D_DISABLE_SHADER_CACHE", "1");
+         Qt3DRender::Render::ShaderBuilder::setPrototypesFile(":/prototypes.json");
+         QVERIFY(!Qt3DRender::Render::ShaderBuilder::getPrototypeNames().isEmpty());
+         QFETCH(Qt3DRender::QShaderProgram::ShaderType, type);
+@@ -606,6 +607,204 @@ private slots:
+         QVERIFY(!backend.isShaderCodeDirty(type));
+         QCOMPARE(backend.shaderCode(type), gl3Code);
+     }
++
++    void checkFileCaching()
++    {
++        // GIVEN
++        qunsetenv("QT3D_DISABLE_SHADER_CACHE");
++        QTemporaryDir cacheDir;
++
++        if (!cacheDir.isValid()) {
++            QSKIP("Unable to generate cache dir, skipping");
++            return;
++        }
++        const auto gl3Api = []{
++            auto api = Qt3DRender::GraphicsApiFilterData();
++            api.m_api = Qt3DRender::QGraphicsApiFilter::OpenGL;
++            api.m_profile = Qt3DRender::QGraphicsApiFilter::CoreProfile;
++            api.m_major = 3;
++            api.m_minor = 2;
++            return api;
++        }();
++        const auto gl2Api = []{
++            auto api = Qt3DRender::GraphicsApiFilterData();
++            api.m_api = Qt3DRender::QGraphicsApiFilter::OpenGL;
++            api.m_profile = Qt3DRender::QGraphicsApiFilter::NoProfile;
++            api.m_major = 2;
++            api.m_minor = 0;
++            return api;
++        }();
++        Qt3DRender::Render::ShaderBuilder::setPrototypesFile(":/prototypes.json");
++        qputenv("QT3D_WRITABLE_CACHE_PATH", cacheDir.path().toUtf8());
++
++        // THEN
++        QVERIFY(QDir(cacheDir.path()).entryList(QDir::Files).empty());
++        QByteArray hashKey;
++        {
++            // WHEN
++            Qt3DRender::Render::ShaderBuilder b;
++            b.setGraphicsApi(gl3Api);
++            const auto graphUrl = QUrl::fromEncoded("qrc:/input.json");
++            b.setShaderGraph(Qt3DRender::QShaderProgram::Vertex, graphUrl);
++            b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++
++            // THEN
++            QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).count(), 1);
++
++            hashKey = b.hashKeyForShaderGraph(Qt3DRender::QShaderProgram::Vertex);
++            QCOMPARE(hashKey.length(), 40);
++
++            QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).first(),
++                     QString::fromUtf8(hashKey) + QLatin1String(".qt3d"));
++        }
++        {
++            // WHEN
++            Qt3DRender::Render::ShaderBuilder b;
++            b.setGraphicsApi(gl3Api);
++            const auto graphUrl = QUrl::fromEncoded("qrc:/input.json");
++            b.setShaderGraph(Qt3DRender::QShaderProgram::Vertex, graphUrl);
++            b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++
++            // THEN
++            QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).count(), 1);
++            QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).first(),
++                     QString::fromUtf8(hashKey) + QLatin1String(".qt3d"));
++        }
++        {
++            // WHEN
++            Qt3DRender::Render::ShaderBuilder b;
++            b.setGraphicsApi(gl2Api);
++            const auto graphUrl = QUrl::fromEncoded("qrc:/input.json");
++            b.setShaderGraph(Qt3DRender::QShaderProgram::Vertex, graphUrl);
++            b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++            QByteArray gl2HashKey = b.hashKeyForShaderGraph(Qt3DRender::QShaderProgram::Vertex);
++
++            // THEN
++            QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).count(), 2);
++            QVERIFY(gl2HashKey != hashKey);
++        }
++    }
++
++    void checkRuntimeCaching()
++    {
++        // GIVEN
++        qunsetenv("QT3D_DISABLE_SHADER_CACHE");
++        TestRenderer renderer;
++        QTemporaryDir cacheDir;
++
++        if (!cacheDir.isValid()) {
++            QSKIP("Unable to generate cache dir, skipping");
++            return;
++        }
++        const auto gl3Api = []{
++            auto api = Qt3DRender::GraphicsApiFilterData();
++            api.m_api = Qt3DRender::QGraphicsApiFilter::OpenGL;
++            api.m_profile = Qt3DRender::QGraphicsApiFilter::CoreProfile;
++            api.m_major = 3;
++            api.m_minor = 2;
++            return api;
++        }();
++        Qt3DRender::Render::ShaderBuilder::setPrototypesFile(":/prototypes.json");
++        qputenv("QT3D_WRITABLE_CACHE_PATH", cacheDir.path().toUtf8());
++
++        // THEN
++        QVERIFY(QDir(cacheDir.path()).entryList(QDir::Files).empty());
++
++        // WHEN
++        Qt3DRender::Render::ShaderBuilder b;
++        b.setGraphicsApi(gl3Api);
++        const auto graphUrl = QUrl::fromEncoded("qrc:/input.json");
++        b.setShaderGraph(Qt3DRender::QShaderProgram::Vertex, graphUrl);
++        b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++
++        // THEN
++        QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).count(), 1);
++
++        const QByteArray hashKey = b.hashKeyForShaderGraph(Qt3DRender::QShaderProgram::Vertex);
++        QCOMPARE(hashKey.length(), 40);
++
++        QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).first(),
++                 QString::fromUtf8(hashKey) + QLatin1String(".qt3d"));
++
++        QVERIFY(!renderer.containsGeneratedShaderGraph(hashKey));
++
++        // WHEN
++        b.setRenderer(&renderer);
++        b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++
++        // THEN
++        QVERIFY(renderer.containsGeneratedShaderGraph(hashKey));
++    }
++
++    void checkDontUseCache()
++    {
++        // GIVEN
++        QTemporaryDir cacheDir;
++
++        if (!cacheDir.isValid()) {
++            QSKIP("Unable to generate cache dir, skipping");
++            return;
++        }
++        const auto gl3Api = []{
++            auto api = Qt3DRender::GraphicsApiFilterData();
++            api.m_api = Qt3DRender::QGraphicsApiFilter::OpenGL;
++            api.m_profile = Qt3DRender::QGraphicsApiFilter::CoreProfile;
++            api.m_major = 3;
++            api.m_minor = 2;
++            return api;
++        }();
++        Qt3DRender::Render::ShaderBuilder::setPrototypesFile(":/prototypes.json");
++
++        // THEN
++        QVERIFY(QDir(cacheDir.path()).entryList(QDir::Files).empty());
++
++        // WHEN
++        qputenv("QT3D_DISABLE_SHADER_CACHE", "1");
++        Qt3DRender::Render::ShaderBuilder b;
++        b.setGraphicsApi(gl3Api);
++        const auto graphUrl = QUrl::fromEncoded("qrc:/input.json");
++        b.setShaderGraph(Qt3DRender::QShaderProgram::Vertex, graphUrl);
++        b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++
++        // THEN
++        QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).count(), 0);
++    }
++
++    void checkForceRebuildCache()
++    {
++        // GIVEN
++        QTemporaryDir cacheDir;
++
++        if (!cacheDir.isValid()) {
++            QSKIP("Unable to generate cache dir, skipping");
++            return;
++        }
++        const auto gl3Api = []{
++            auto api = Qt3DRender::GraphicsApiFilterData();
++            api.m_api = Qt3DRender::QGraphicsApiFilter::OpenGL;
++            api.m_profile = Qt3DRender::QGraphicsApiFilter::CoreProfile;
++            api.m_major = 3;
++            api.m_minor = 2;
++            return api;
++        }();
++        Qt3DRender::Render::ShaderBuilder::setPrototypesFile(":/prototypes.json");
++
++        // THEN
++        QVERIFY(QDir(cacheDir.path()).entryList(QDir::Files).empty());
++
++        // WHEN
++        qputenv("QT3D_WRITABLE_CACHE_PATH", cacheDir.path().toUtf8());
++        qputenv("QT3D_DISABLE_SHADER_CACHE", "1");
++        qputenv("QT3D_REBUILD_SHADER_CACHE", "1");
++        Qt3DRender::Render::ShaderBuilder b;
++        b.setGraphicsApi(gl3Api);
++        const auto graphUrl = QUrl::fromEncoded("qrc:/input.json");
++        b.setShaderGraph(Qt3DRender::QShaderProgram::Vertex, graphUrl);
++        b.generateCode(Qt3DRender::QShaderProgram::Vertex);
++
++        // THEN -> We have rebuilt the shader file (even if we don't use it)
++        QCOMPARE(QDir(cacheDir.path()).entryList(QDir::Files).count(), 1);
++    }
+ };
+ 
+ QTEST_MAIN(tst_ShaderBuilder)
+diff --git a/tests/auto/render/shadergraph/qshadergenerator/tst_qshadergenerator.cpp b/tests/auto/render/shadergraph/qshadergenerator/tst_qshadergenerator.cpp
+index 98f571328..c34cdb69f 100644
+--- a/tests/auto/render/shadergraph/qshadergenerator/tst_qshadergenerator.cpp
++++ b/tests/auto/render/shadergraph/qshadergenerator/tst_qshadergenerator.cpp
+@@ -516,7 +516,7 @@ namespace {
+         case QShaderLanguage::Sampler1DArrayShadow:
+             return "sampler1DArrayShadow";
+         case QShaderLanguage::Sampler2DArrayShadow:
+-            return "sample2DArrayShadow";
++            return "sampler2DArrayShadow";
+         case QShaderLanguage::SamplerCubeShadow:
+             return "samplerCubeShadow";
+         case QShaderLanguage::SamplerCubeArrayShadow:
+diff --git a/tests/auto/render/shadergraph/qshadernodes/tst_qshadernodes.cpp b/tests/auto/render/shadergraph/qshadernodes/tst_qshadernodes.cpp
+index 2cd2ff90d..2c53de349 100644
+--- a/tests/auto/render/shadergraph/qshadernodes/tst_qshadernodes.cpp
++++ b/tests/auto/render/shadergraph/qshadernodes/tst_qshadernodes.cpp
+@@ -540,8 +540,8 @@ void tst_QShaderNodes::shouldHandleNodeRulesSupportAndOrder()
+     QCOMPARE(node.availableFormats().at(2), openGL3);
+     QCOMPARE(node.rule(openGLES2), es2Rule);
+     QCOMPARE(node.rule(openGL3), gl3bisRule);
+-    QCOMPARE(node.rule(openGL32), gl3bisRule);
+-    QCOMPARE(node.rule(openGL4), gl3bisRule);
++    QCOMPARE(node.rule(openGL32), gl32Rule);
++    QCOMPARE(node.rule(openGL4), gl32Rule);
+ }
+ 
+ QTEST_MAIN(tst_QShaderNodes)
