@@ -61,6 +61,10 @@ Sean Harmer (2):
       Render enough frames to flush the Qt3D pipeline when dirty
       Trigger an update on the quick window when creating a render aspect
 
+Tarja Sundqvist (2):
+      Update commercial license headers
+      Revert "Update commercial license headers"
+
 diff --git a/dist/changes-5.15.2 b/dist/changes-5.15.2
 deleted file mode 100644
 index c0265e123..000000000
