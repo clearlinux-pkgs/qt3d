@@ -1,7 +1,8 @@
 Antti Määttä (1):
       Fix parameter priorization documentation
 
-Jani Heikkinen (1):
+Jani Heikkinen (2):
+      Bump version
       Bump version
 
 Jim Albamont (4):
@@ -61,9 +62,10 @@ Sean Harmer (2):
       Render enough frames to flush the Qt3D pipeline when dirty
       Trigger an update on the quick window when creating a render aspect
 
-Tarja Sundqvist (2):
+Tarja Sundqvist (3):
       Update commercial license headers
       Revert "Update commercial license headers"
+      Merge remote-tracking branch 'origin/tqtc/lts-5.15.4' into tqtc/lts-5.15-opensource
 
 diff --git a/dist/changes-5.15.2 b/dist/changes-5.15.2
 deleted file mode 100644
