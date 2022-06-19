@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 39
+Release  : 40
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -111,10 +111,10 @@ export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
 export GCC_IGNORE_WERROR=1
-export CFLAGS="$CFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mno-vzeroupper -mprefer-vector-width=256 "
-export FCFLAGS="$FFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mno-vzeroupper -mprefer-vector-width=256 "
-export FFLAGS="$FFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mno-vzeroupper -mprefer-vector-width=256 "
-export CXXFLAGS="$CXXFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mno-vzeroupper -mprefer-vector-width=256 "
+export CFLAGS="$CFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mprefer-vector-width=256 "
+export FCFLAGS="$FFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mprefer-vector-width=256 "
+export FFLAGS="$FFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mprefer-vector-width=256 "
+export CXXFLAGS="$CXXFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition -mprefer-vector-width=256 "
 %qmake QMAKE_CFLAGS+=-fno-lto QMAKE_CXXFLAGS+=-fno-lto
 test -r config.log && cat config.log
 make  %{?_smp_mflags}
@@ -126,7 +126,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1652675133
+export SOURCE_DATE_EPOCH=1655662404
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2
