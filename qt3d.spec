@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 40
+Release  : 41
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -126,7 +126,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1655662404
+export SOURCE_DATE_EPOCH=1656367300
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2
@@ -157,7 +157,7 @@ pushd ../buildavx2/
 %make_install_v3
 popd
 %make_install
-/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot}/usr/share/clear/optimized-elf/ %{buildroot}/usr/share/clear/filemap/filemap-%{name}
+/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}
 
 %files
 %defattr(-,root,root,-)
@@ -1363,6 +1363,18 @@ popd
 /usr/lib64/cmake/Qt53DRender/Qt53DRender_GLTFSceneImportPlugin.cmake
 /usr/lib64/cmake/Qt53DRender/Qt53DRender_OpenGLRendererPlugin.cmake
 /usr/lib64/cmake/Qt53DRender/Qt53DRender_Scene2DPlugin.cmake
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DAnimation.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DCore.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DExtras.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DInput.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DLogic.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuick.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickAnimation.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickExtras.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickInput.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickRender.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickScene2D.so
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DRender.so
 /usr/lib64/libQt53DAnimation.prl
 /usr/lib64/libQt53DAnimation.so
 /usr/lib64/libQt53DCore.prl
@@ -1801,6 +1813,42 @@ popd
 
 %files lib
 %defattr(-,root,root,-)
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DAnimation.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DAnimation.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DAnimation.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DCore.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DCore.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DCore.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DExtras.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DExtras.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DExtras.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DInput.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DInput.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DInput.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DLogic.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DLogic.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DLogic.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuick.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuick.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuick.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickAnimation.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickAnimation.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickAnimation.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickExtras.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickExtras.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickExtras.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickInput.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickInput.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickInput.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickRender.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickRender.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickRender.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickScene2D.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickScene2D.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickScene2D.so.5.15.2
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DRender.so.5
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DRender.so.5.15
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DRender.so.5.15.2
 /usr/lib64/libQt53DAnimation.so.5
 /usr/lib64/libQt53DAnimation.so.5.15
 /usr/lib64/libQt53DAnimation.so.5.15.2
@@ -1868,7 +1916,6 @@ popd
 /usr/lib64/qt5/qml/QtQuick/Scene3D/libqtquickscene3dplugin.so
 /usr/lib64/qt5/qml/QtQuick/Scene3D/plugins.qmltypes
 /usr/lib64/qt5/qml/QtQuick/Scene3D/qmldir
-/usr/share/clear/optimized-elf/lib*
 
 %files license
 %defattr(0644,root,root,0755)
