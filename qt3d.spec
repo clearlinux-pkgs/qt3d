@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 41
+Release  : 42
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -1916,6 +1916,7 @@ popd
 /usr/lib64/qt5/qml/QtQuick/Scene3D/libqtquickscene3dplugin.so
 /usr/lib64/qt5/qml/QtQuick/Scene3D/plugins.qmltypes
 /usr/lib64/qt5/qml/QtQuick/Scene3D/qmldir
+/usr/share/clear/optimized-elf/other*
 
 %files license
 %defattr(0644,root,root,0755)
