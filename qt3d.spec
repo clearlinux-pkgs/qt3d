@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 45
+Release  : 46
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -126,33 +126,33 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1656367300
+export SOURCE_DATE_EPOCH=1662653356
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL2 %{buildroot}/usr/share/package-licenses/qt3d/4cc77b90af91e615a64ae04893fdffa7939db84c
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL3 %{buildroot}/usr/share/package-licenses/qt3d/8624bcdae55baeef00cd11d5dfcfa60f68710a02
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPL3-EXCEPT %{buildroot}/usr/share/package-licenses/qt3d/e93757aefa405f2c9a8a55e780ae9c39542dfc3a
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.GPLv3 %{buildroot}/usr/share/package-licenses/qt3d/7d974f34cf5fd474f0fdf6ebc8d410ea5c8b72de
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.LGPL3 %{buildroot}/usr/share/package-licenses/qt3d/f45ee1c765646813b442ca58de72e20a64a7ddba
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/LICENSE.LGPLv3 %{buildroot}/usr/share/package-licenses/qt3d/3e14af11ba18dbb289fda3a9f35d7519536c3594
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/examples/qt3d/exampleresources/assets/gltf/LICENSE.md %{buildroot}/usr/share/package-licenses/qt3d/ae8214cb204c42129f08508d2eb9017a8ef45522
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/examples/qt3d/exampleresources/assets/gltf/wine/LICENSE.md %{buildroot}/usr/share/package-licenses/qt3d/ae8214cb204c42129f08508d2eb9017a8ef45522
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/examples/qt3d/planets-qml/images/solarsystemscope/license.txt %{buildroot}/usr/share/package-licenses/qt3d/693439874dd3af611bcd4665294ef0a00370f316
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/LICENSE %{buildroot}/usr/share/package-licenses/qt3d/e17e89e763a2dee69f8930e7f292e836329003ca
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/LICENSE_Open3DGC.txt %{buildroot}/usr/share/package-licenses/qt3d/083764859aaae748d0b3a2474fb45bfdf640689d
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/LICENSE_irrxml.txt %{buildroot}/usr/share/package-licenses/qt3d/0d8a78c95b1b7b0a9493fcb3718ed5a0be7e27f4
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/LICENSE_unzip.txt %{buildroot}/usr/share/package-licenses/qt3d/6a9d0fd268bedfb4efdc581af4c81e6277928456
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/LICENSE_utf8cpp.txt %{buildroot}/usr/share/package-licenses/qt3d/a586582d6c1b1b7e36803c7bfee73341fa107086
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/LICENSE_zip.txt %{buildroot}/usr/share/package-licenses/qt3d/ff007ce11f3ff7964f1a5b04202c4e95b5c82c85
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/contrib/clipper/License.txt %{buildroot}/usr/share/package-licenses/qt3d/e4b7506d9f00ccf4a353cd90c412d960284b776c
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/contrib/openddlparser/LICENSE %{buildroot}/usr/share/package-licenses/qt3d/2cb5e9994220f1b4cbcb8fe617c5936a33414d6c
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/contrib/poly2tri/LICENSE %{buildroot}/usr/share/package-licenses/qt3d/3c4a0cf53278b001dd25ca8dea8d543fc0374181
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/contrib/rapidjson/license.txt %{buildroot}/usr/share/package-licenses/qt3d/47ab05791f28173ad2b82f25c2b5c7fc06252b4d
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/assimp/contrib/zip/UNLICENSE %{buildroot}/usr/share/package-licenses/qt3d/37b4d8fc2380f796ce8ca0cb52c23238b9ed8163
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/imgui/LICENSE.txt %{buildroot}/usr/share/package-licenses/qt3d/35c378e9a2394a10656c4f7075323670e5bfd5f5
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/imgui/LICENSE_imstb.txt %{buildroot}/usr/share/package-licenses/qt3d/6344bf66fe2a72d766c2fb96281e07e86045c551
-cp %{_builddir}/qt3d-everywhere-src-5.15.2/src/3rdparty/imgui/LICENSE_proggyclean.txt %{buildroot}/usr/share/package-licenses/qt3d/26c55ac59654bf077930b570224776e374716d75
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL2 %{buildroot}/usr/share/package-licenses/qt3d/4cc77b90af91e615a64ae04893fdffa7939db84c || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL3 %{buildroot}/usr/share/package-licenses/qt3d/8624bcdae55baeef00cd11d5dfcfa60f68710a02 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL3-EXCEPT %{buildroot}/usr/share/package-licenses/qt3d/e93757aefa405f2c9a8a55e780ae9c39542dfc3a || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPLv3 %{buildroot}/usr/share/package-licenses/qt3d/7d974f34cf5fd474f0fdf6ebc8d410ea5c8b72de || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.LGPL3 %{buildroot}/usr/share/package-licenses/qt3d/f45ee1c765646813b442ca58de72e20a64a7ddba || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.LGPLv3 %{buildroot}/usr/share/package-licenses/qt3d/3e14af11ba18dbb289fda3a9f35d7519536c3594 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/examples/qt3d/exampleresources/assets/gltf/LICENSE.md %{buildroot}/usr/share/package-licenses/qt3d/ae8214cb204c42129f08508d2eb9017a8ef45522 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/examples/qt3d/exampleresources/assets/gltf/wine/LICENSE.md %{buildroot}/usr/share/package-licenses/qt3d/ae8214cb204c42129f08508d2eb9017a8ef45522 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/examples/qt3d/planets-qml/images/solarsystemscope/license.txt %{buildroot}/usr/share/package-licenses/qt3d/693439874dd3af611bcd4665294ef0a00370f316 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/LICENSE %{buildroot}/usr/share/package-licenses/qt3d/e17e89e763a2dee69f8930e7f292e836329003ca || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/LICENSE_Open3DGC.txt %{buildroot}/usr/share/package-licenses/qt3d/083764859aaae748d0b3a2474fb45bfdf640689d || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/LICENSE_irrxml.txt %{buildroot}/usr/share/package-licenses/qt3d/0d8a78c95b1b7b0a9493fcb3718ed5a0be7e27f4 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/LICENSE_unzip.txt %{buildroot}/usr/share/package-licenses/qt3d/6a9d0fd268bedfb4efdc581af4c81e6277928456 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/LICENSE_utf8cpp.txt %{buildroot}/usr/share/package-licenses/qt3d/a586582d6c1b1b7e36803c7bfee73341fa107086 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/LICENSE_zip.txt %{buildroot}/usr/share/package-licenses/qt3d/ff007ce11f3ff7964f1a5b04202c4e95b5c82c85 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/contrib/clipper/License.txt %{buildroot}/usr/share/package-licenses/qt3d/e4b7506d9f00ccf4a353cd90c412d960284b776c || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/contrib/openddlparser/LICENSE %{buildroot}/usr/share/package-licenses/qt3d/2cb5e9994220f1b4cbcb8fe617c5936a33414d6c || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/contrib/poly2tri/LICENSE %{buildroot}/usr/share/package-licenses/qt3d/3c4a0cf53278b001dd25ca8dea8d543fc0374181 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/contrib/rapidjson/license.txt %{buildroot}/usr/share/package-licenses/qt3d/47ab05791f28173ad2b82f25c2b5c7fc06252b4d || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/assimp/contrib/zip/UNLICENSE %{buildroot}/usr/share/package-licenses/qt3d/37b4d8fc2380f796ce8ca0cb52c23238b9ed8163 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/imgui/LICENSE.txt %{buildroot}/usr/share/package-licenses/qt3d/35c378e9a2394a10656c4f7075323670e5bfd5f5 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/imgui/LICENSE_imstb.txt %{buildroot}/usr/share/package-licenses/qt3d/6344bf66fe2a72d766c2fb96281e07e86045c551 || :
+cp %{_builddir}/qt3d-everywhere-src-%{version}/src/3rdparty/imgui/LICENSE_proggyclean.txt %{buildroot}/usr/share/package-licenses/qt3d/26c55ac59654bf077930b570224776e374716d75 || :
 pushd ../buildavx2/
 %make_install_v3
 popd
@@ -161,6 +161,18 @@ popd
 
 %files
 %defattr(-,root,root,-)
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DAnimation.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DCore.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DExtras.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DInput.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DLogic.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuick.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickAnimation.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickExtras.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickInput.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickRender.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DQuickScene2D.prl
+/usr/lib64/glibc-hwcaps/x86-64-v3/libQt53DRender.prl
 
 %files bin
 %defattr(-,root,root,-)
