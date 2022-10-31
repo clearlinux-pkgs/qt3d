@@ -4,7 +4,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 47
+Release  : 48
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -126,7 +126,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1662653356
+export SOURCE_DATE_EPOCH=1667229432
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2 || :
