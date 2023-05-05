@@ -5,7 +5,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 50
+Release  : 51
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -32,9 +32,6 @@ BuildRequires : pkgconfig(Qt5Widgets)
 BuildRequires : pkgconfig(assimp)
 BuildRequires : qtbase-staticdev
 BuildRequires : zlib-dev
-# Suppress stripping binaries
-%define __strip /bin/true
-%define debug_package %{nil}
 Patch1: qt3d-stable-branch.patch
 
 %description
@@ -103,10 +100,10 @@ export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
 export GCC_IGNORE_WERROR=1
-export CFLAGS="$CFLAGS -Ofast -falign-functions=32 -fdebug-types-section -femit-struct-debug-baseonly -fno-semantic-interposition -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
-export FCFLAGS="$FFLAGS -Ofast -falign-functions=32 -fdebug-types-section -femit-struct-debug-baseonly -fno-semantic-interposition -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
-export FFLAGS="$FFLAGS -Ofast -falign-functions=32 -fdebug-types-section -femit-struct-debug-baseonly -fno-semantic-interposition -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
-export CXXFLAGS="$CXXFLAGS -Ofast -falign-functions=32 -fdebug-types-section -femit-struct-debug-baseonly -fno-semantic-interposition -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
+export CFLAGS="$CFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition "
+export FCFLAGS="$FFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition "
+export FFLAGS="$FFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition "
+export CXXFLAGS="$CXXFLAGS -Ofast -falign-functions=32 -fno-semantic-interposition "
 %qmake QMAKE_CFLAGS+=-fno-lto QMAKE_CXXFLAGS+=-fno-lto
 test -r config.log && cat config.log
 make  %{?_smp_mflags}
@@ -118,7 +115,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1683225208
+export SOURCE_DATE_EPOCH=1683257088
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2 || :
