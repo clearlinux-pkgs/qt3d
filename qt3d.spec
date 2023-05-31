@@ -5,7 +5,7 @@
 #
 Name     : qt3d
 Version  : 5.15.2
-Release  : 52
+Release  : 53
 URL      : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Source0  : https://download.qt.io/official_releases/qt/5.15/5.15.2/submodules/qt3d-everywhere-src-5.15.2.tar.xz
 Summary  : No detailed summary available
@@ -115,7 +115,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1683567395
+export SOURCE_DATE_EPOCH=1685542682
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qt3d
 cp %{_builddir}/qt3d-everywhere-src-%{version}/LICENSE.GPL %{buildroot}/usr/share/package-licenses/qt3d/87d17bf05b5aba91a2091b17a89336fb6a8954e2 || :
@@ -158,18 +158,6 @@ popd
 
 %files dev
 %defattr(-,root,root,-)
-/V3/usr/lib64/libQt53DAnimation.so
-/V3/usr/lib64/libQt53DCore.so
-/V3/usr/lib64/libQt53DExtras.so
-/V3/usr/lib64/libQt53DInput.so
-/V3/usr/lib64/libQt53DLogic.so
-/V3/usr/lib64/libQt53DQuick.so
-/V3/usr/lib64/libQt53DQuickAnimation.so
-/V3/usr/lib64/libQt53DQuickExtras.so
-/V3/usr/lib64/libQt53DQuickInput.so
-/V3/usr/lib64/libQt53DQuickRender.so
-/V3/usr/lib64/libQt53DQuickScene2D.so
-/V3/usr/lib64/libQt53DRender.so
 /usr/include/qt5/Qt3DAnimation/5.15.2/Qt3DAnimation/private/abstractevaluateclipanimatorjob_p.h
 /usr/include/qt5/Qt3DAnimation/5.15.2/Qt3DAnimation/private/additiveclipblend_p.h
 /usr/include/qt5/Qt3DAnimation/5.15.2/Qt3DAnimation/private/animationclip_p.h
@@ -1798,41 +1786,17 @@ popd
 
 %files lib
 %defattr(-,root,root,-)
-/V3/usr/lib64/libQt53DAnimation.so.5
-/V3/usr/lib64/libQt53DAnimation.so.5.15
 /V3/usr/lib64/libQt53DAnimation.so.5.15.2
-/V3/usr/lib64/libQt53DCore.so.5
-/V3/usr/lib64/libQt53DCore.so.5.15
 /V3/usr/lib64/libQt53DCore.so.5.15.2
-/V3/usr/lib64/libQt53DExtras.so.5
-/V3/usr/lib64/libQt53DExtras.so.5.15
 /V3/usr/lib64/libQt53DExtras.so.5.15.2
-/V3/usr/lib64/libQt53DInput.so.5
-/V3/usr/lib64/libQt53DInput.so.5.15
 /V3/usr/lib64/libQt53DInput.so.5.15.2
-/V3/usr/lib64/libQt53DLogic.so.5
-/V3/usr/lib64/libQt53DLogic.so.5.15
 /V3/usr/lib64/libQt53DLogic.so.5.15.2
-/V3/usr/lib64/libQt53DQuick.so.5
-/V3/usr/lib64/libQt53DQuick.so.5.15
 /V3/usr/lib64/libQt53DQuick.so.5.15.2
-/V3/usr/lib64/libQt53DQuickAnimation.so.5
-/V3/usr/lib64/libQt53DQuickAnimation.so.5.15
 /V3/usr/lib64/libQt53DQuickAnimation.so.5.15.2
-/V3/usr/lib64/libQt53DQuickExtras.so.5
-/V3/usr/lib64/libQt53DQuickExtras.so.5.15
 /V3/usr/lib64/libQt53DQuickExtras.so.5.15.2
-/V3/usr/lib64/libQt53DQuickInput.so.5
-/V3/usr/lib64/libQt53DQuickInput.so.5.15
 /V3/usr/lib64/libQt53DQuickInput.so.5.15.2
-/V3/usr/lib64/libQt53DQuickRender.so.5
-/V3/usr/lib64/libQt53DQuickRender.so.5.15
 /V3/usr/lib64/libQt53DQuickRender.so.5.15.2
-/V3/usr/lib64/libQt53DQuickScene2D.so.5
-/V3/usr/lib64/libQt53DQuickScene2D.so.5.15
 /V3/usr/lib64/libQt53DQuickScene2D.so.5.15.2
-/V3/usr/lib64/libQt53DRender.so.5
-/V3/usr/lib64/libQt53DRender.so.5.15
 /V3/usr/lib64/libQt53DRender.so.5.15.2
 /V3/usr/lib64/qt5/plugins/geometryloaders/libdefaultgeometryloader.so
 /V3/usr/lib64/qt5/plugins/geometryloaders/libgltfgeometryloader.so
