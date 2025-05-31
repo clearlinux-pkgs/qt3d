@@ -1,3 +1,15 @@
 # This file contains additional pkgconfig build requirements that did
 # not get picked up automatically. One name per line, no whitespace.
 assimp
+Qt5Concurrent
+Qt5Core
+Qt5Gui
+Qt5Multimedia
+Qt5Network
+Qt5OpenGLExtensions
+Qt5Qml
+Qt5Quick
+Qt5QuickWidgets
+Qt5Sensors
+Qt5Test
+Qt5Widgets
